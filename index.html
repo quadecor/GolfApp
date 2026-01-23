@@ -648,7 +648,7 @@
                     <h2 id="labelPairings">📋 Generated Pairings & Foursomes</h2>
                     <div id="pairingsResults">
                         <div class="empty-state">
-                            <p>Select players from the Players tab and click Generate</p>
+                            <p id="msgSelectPlayers">Select players from the Players tab and click Generate</p>
                         </div>
                     </div>
                 </div>
@@ -656,7 +656,7 @@
                 <div class="table-section" style="margin-top: 40px; border-top: 2px solid #e0e0e0; padding-top: 30px;">
                     <h2 id="labelHistory">📅 Game History</h2>
                     <div id="historyContainer">
-                        <div class="loading">Loading history...</div>
+                        <div class="loading" id="msgLoadingHistory">Loading history...</div>
                     </div>
                 </div>
             </div>
@@ -750,6 +750,14 @@
                 labelHistory: "📅 Game History",
                 noHistory: "No saved games yet.",
                 msgSwapInstruction: "💡 Click two players to swap them.",
+                msgSelectPlayers: "Select players from the Players tab and click Generate",
+                msgLoadingHistory: "Loading history...",
+                optChooseCourse: "-- Choose a course --",
+                alertSelectPlayers: "Please select at least one player from the Players tab!",
+                alertSelectDate: "Please select a date!",
+                alertGameSaved: "Game saved successfully!",
+                alertGameUpdated: "Game updated!",
+                alertSaveFailed: "Failed to save game",
                 footerText: "© 2026 Application Property of Sylvain Trepanier"
             },
             fr: {
@@ -828,6 +836,14 @@
                 labelHistory: "📅 Historique des Parties",
                 noHistory: "Aucune partie sauvegardée.",
                 msgSwapInstruction: "💡 Cliquez sur deux joueurs pour les échanger.",
+                msgSelectPlayers: "Sélectionnez des joueurs dans l'onglet Joueurs et cliquez sur Générer",
+                msgLoadingHistory: "Chargement de l'historique...",
+                optChooseCourse: "-- Choisir un terrain --",
+                alertSelectPlayers: "Veuillez sélectionner au moins un joueur dans l'onglet Joueurs !",
+                alertSelectDate: "Veuillez sélectionner une date !",
+                alertGameSaved: "Partie sauvegardée avec succès !",
+                alertGameUpdated: "Partie mise à jour !",
+                alertSaveFailed: "Échec de la sauvegarde de la partie",
                 footerText: "© 2026 Cette application est la propriété de Sylvain Trepanier"
             }
         };
@@ -920,6 +936,14 @@
                 document.getElementById('labelPairings').textContent = t.labelPairings;
                 document.getElementById('labelGameDate').textContent = t.labelGameDate;
                 document.getElementById('labelHistory').textContent = t.labelHistory;
+                if (document.getElementById('msgSelectPlayers')) document.getElementById('msgSelectPlayers').textContent = t.msgSelectPlayers;
+                if (document.getElementById('msgLoadingHistory')) document.getElementById('msgLoadingHistory').textContent = t.msgLoadingHistory;
+                
+                // Update dropdown default option if it exists
+                const courseSelect = document.getElementById('planningCourseSelect');
+                if (courseSelect && courseSelect.options.length > 0 && courseSelect.options[0].value === "") {
+                    courseSelect.options[0].textContent = t.optChooseCourse;
+                }
             }
         }
 
@@ -1800,11 +1824,12 @@
         let swapSelection = null; // {gIdx, pIdx}
 
         function updatePlanningDropdown() {
+            const t = translations[currentLang];
             const select = document.getElementById('planningCourseSelect');
             const currentVal = select.value;
             
             // Keep first option
-            select.innerHTML = '<option value="">-- Choose a course --</option>';
+            select.innerHTML = `<option value="">${t.optChooseCourse}</option>`;
             
             courses.forEach(course => {
                 const opt = document.createElement('option');
@@ -1816,10 +1841,11 @@
         }
 
         window.generatePairings = function() {
+            const t = translations[currentLang];
             // Get selected players
             const selectedCheckboxes = document.querySelectorAll('.player-select-cb:checked');
             if (selectedCheckboxes.length === 0) {
-                alert("Please select at least one player from the Players tab!");
+                alert(t.alertSelectPlayers);
                 switchTab('players');
                 return;
             }
@@ -1835,7 +1861,7 @@
             const gameDate = document.getElementById('planningDate').value;
             
             if (!gameDate) {
-                alert("Please select a date!");
+                alert(t.alertSelectDate);
                 return;
             }
 
@@ -2097,14 +2123,14 @@
             }
 
             promise.then(() => {
-                const msg = key ? (currentLang === 'fr' ? "Partie mise à jour!" : "Game updated!") : (currentLang === 'fr' ? "Partie sauvegardée!" : "Game saved!");
+                const msg = key ? t.alertGameUpdated : t.alertGameSaved;
                 alert(msg);
                 currentGameData = null; // Reset
                 document.getElementById('pairingsResults').innerHTML = `<div class="empty-state"><p>${t.labelPairings}</p></div>`; // Clear view
                 loadGameHistory(); // Refresh history
             }).catch((error) => {
                 console.error('Error saving game:', error);
-                alert('Failed to save game');
+                alert(t.alertSaveFailed);
             });
         };
 
