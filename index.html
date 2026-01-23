@@ -729,6 +729,16 @@
                 searching: "Searching...",
                 noResults: "No courses found. Try a different search term.",
                 holes: "holes",
+                msgApiUnavailable: "⚠️ API unavailable. Showing sample famous courses.",
+                msgApiConnectionError: "⚠️ API Connection Issue",
+                msgShowingDatabase: "Showing database matches instead.",
+                msgLocationUnknown: "Location not specified",
+                msgUnknownCourse: "Unknown Course",
+                unitYards: "yards",
+                alertCourseAdded: "added to your courses!",
+                alertAddCourseFailed: "Failed to add course",
+                alertQuotaExceeded: "Quota Exceeded (429)",
+                alertInvalidKey: "Invalid API Key (401/403)",
                 // Planning
                 tabPlanning: "📅 Planning",
                 planningTitle: "⛳ Plan Golf Game",
@@ -820,6 +830,16 @@
                 searching: "Recherche en cours...",
                 noResults: "Aucun terrain trouvé. Essayez un autre terme de recherche.",
                 holes: "trous",
+                msgApiUnavailable: "⚠️ API indisponible. Affichage de terrains célèbres.",
+                msgApiConnectionError: "⚠️ Problème de Connexion API",
+                msgShowingDatabase: "Affichage des résultats de la base de données.",
+                msgLocationUnknown: "Emplacement non spécifié",
+                msgUnknownCourse: "Terrain Inconnu",
+                unitYards: "verges",
+                alertCourseAdded: "ajouté à vos terrains !",
+                alertAddCourseFailed: "Échec de l'ajout du terrain",
+                alertQuotaExceeded: "Quota Dépassé (429)",
+                alertInvalidKey: "Clé API Invalide (401/403)",
                 // Planning
                 tabPlanning: "📅 Planification",
                 planningTitle: "⛳ Planifier une Partie",
@@ -1572,8 +1592,8 @@
                         }
                     } else {
                         lastError = `Status: ${response.status} (${response.statusText})`;
-                        if (response.status === 429) lastError = "Quota Exceeded (429)";
-                        if (response.status === 401 || response.status === 403) lastError = "Invalid API Key (401/403)";
+                        if (response.status === 429) lastError = translations[currentLang].alertQuotaExceeded;
+                        if (response.status === 401 || response.status === 403) lastError = translations[currentLang].alertInvalidKey;
                         console.log(`Endpoint ${i + 1} failed:`, response.status);
                     }
                 } catch (error) {
@@ -1585,7 +1605,8 @@
             // All endpoints failed
             if (!apiSuccess) {
                 console.log('All API endpoints failed. Using sample data.');
-                const errorMsg = `<strong>⚠️ API Connection Issue</strong><br>${lastError ? `Error: ${lastError}<br>` : ''}Showing database matches instead.`;
+                const t = translations[currentLang];
+                const errorMsg = `<strong>${t.msgApiConnectionError}</strong><br>${lastError ? `Error: ${lastError}<br>` : ''}${t.msgShowingDatabase}`;
                 showSampleCourses(searchTerm, errorMsg);
             }
         };
@@ -1726,7 +1747,7 @@
                 c.country.toLowerCase().includes(searchLower)
             );
             
-            const msg = customErrorMsg || "⚠️ API unavailable. Showing sample famous courses.";
+            const msg = customErrorMsg || t.msgApiUnavailable;
 
             if (filtered.length > 0) {
                 displayApiResults(filtered);
@@ -1756,7 +1777,7 @@
                 if (course.state_province) locationParts.push(course.state_province);
                 if (course.state) locationParts.push(course.state);
                 if (course.country) locationParts.push(course.country);
-                const location = locationParts.join(', ') || 'Location not specified';
+                const location = locationParts.join(', ') || t.msgLocationUnknown;
                 
                 // Get detailed data
                 const holes = course.holes || course.hole_count || 18;
@@ -1770,9 +1791,9 @@
                 html += `
                     <div class="course-result">
                         <div class="course-info">
-                            <h4>${course.name || 'Unknown Course'}</h4>
+                            <h4>${course.name || t.msgUnknownCourse}</h4>
                             <p>📍 ${location}</p>
-                            <p>⛳ Par: ${par} | ${holes} ${t.holes}${yards ? ` | ${yards} yards` : ''}</p>
+                            <p>⛳ Par: ${par} | ${holes} ${t.holes}${yards ? ` | ${yards} ${t.unitYards}` : ''}</p>
                             ${rating && slope ? `<p>📊 Rating: ${rating} | Slope: ${slope}</p>` : ''}
                             ${designer ? `<p>🏗️ Designer: ${designer}${course.year ? ` (${course.year})` : ''}</p>` : ''}
                             ${type ? `<p>🏛️ Type: ${type}</p>` : ''}
@@ -1829,11 +1850,13 @@
             if (year) courseData.year = year;
 
             coursesRef.push(courseData).then(() => {
+                const t = translations[currentLang];
                 console.log('Course added successfully from API with detailed data');
-                alert(`✅ ${course.name} added to your courses!`);
+                alert(`✅ ${course.name} ${t.alertCourseAdded}`);
             }).catch((error) => {
+                const t = translations[currentLang];
                 console.error('Error adding course:', error);
-                alert('Failed to add course');
+                alert(t.alertAddCourseFailed);
             });
         };
 
