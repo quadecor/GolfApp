@@ -948,11 +948,29 @@
                 document.getElementById('labelHistory').textContent = t.labelHistory;
                 if (document.getElementById('msgSelectPlayers')) document.getElementById('msgSelectPlayers').textContent = t.msgSelectPlayers;
                 if (document.getElementById('msgLoadingHistory')) document.getElementById('msgLoadingHistory').textContent = t.msgLoadingHistory;
+                if (document.getElementById('labelAvailable')) document.getElementById('labelAvailable').textContent = t.labelAvailable;
+                if (document.getElementById('msgAvailability')) document.getElementById('msgAvailability').textContent = t.msgAvailability;
                 
                 // Update dropdown default option if it exists
                 const courseSelect = document.getElementById('planningCourseSelect');
                 if (courseSelect && courseSelect.options.length > 0 && courseSelect.options[0].value === "") {
                     courseSelect.options[0].textContent = t.optChooseCourse;
+                }
+                
+                // Refresh pairings logic if visible to update dynamic texts
+                if (currentGameData) {
+                    renderCurrentPairings();
+                } else {
+                    // Update empty state if needed
+                    const container = document.getElementById('pairingsResults');
+                    if(container && container.querySelector('.empty-state p')) {
+                         container.querySelector('.empty-state p').textContent = t.msgSelectPlayers;
+                    }
+                }
+                
+                // Reload history to update texts (like "Load/Edit" button)
+                if (document.getElementById('historyContainer')) {
+                    loadGameHistory();
                 }
             }
         }
