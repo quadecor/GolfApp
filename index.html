@@ -758,6 +758,11 @@
                 alertGameSaved: "Game saved successfully!",
                 alertGameUpdated: "Game updated!",
                 alertSaveFailed: "Failed to save game",
+                // New translations
+                msgEmptyGroup: "Empty Group",
+                btnCancelEdit: "Cancel Edit",
+                msgAllAssigned: "All players assigned.",
+                alertSelectAvailable: "Please select a player from the 'Available Players' list first.",
                 footerText: "© 2026 Application Property of Sylvain Trepanier"
             },
             fr: {
@@ -844,6 +849,11 @@
                 alertGameSaved: "Partie sauvegardée avec succès !",
                 alertGameUpdated: "Partie mise à jour !",
                 alertSaveFailed: "Échec de la sauvegarde de la partie",
+                // New translations
+                msgEmptyGroup: "Groupe Vide",
+                btnCancelEdit: "Annuler Modification",
+                msgAllAssigned: "Tous les joueurs sont assignés.",
+                alertSelectAvailable: "Veuillez d'abord sélectionner un joueur dans la liste 'Joueurs Disponibles'.",
                 footerText: "© 2026 Cette application est la propriété de Sylvain Trepanier"
             }
         };
@@ -1949,7 +1959,7 @@
                 `;
                 
                 if (group.length === 0) {
-                     html += `<div style="color: #999; font-style: italic; padding: 10px; text-align: center;">Empty Group</div>`;
+                     html += `<div style="color: #999; font-style: italic; padding: 10px; text-align: center;">${t.msgEmptyGroup}</div>`;
                 } else {
                     group.forEach((player, pIdx) => {
                         const isSelected = swapSelection && swapSelection.type === 'group' && swapSelection.gIdx === gIdx && swapSelection.pIdx === pIdx;
@@ -1977,7 +1987,7 @@
                     <button class="btn btn-primary" onclick="saveGame()" style="background: #2196F3; font-size: 1.1em;">
                         ${btnText}
                     </button>
-                    ${currentGameData.key ? `<button class="btn btn-secondary" onclick="currentGameData=null; renderCurrentPairings();" style="margin-left: 10px;">Cancel Edit</button>` : ''}
+                    ${currentGameData.key ? `<button class="btn btn-secondary" onclick="currentGameData=null; renderCurrentPairings();" style="margin-left: 10px;">${t.btnCancelEdit}</button>` : ''}
                 </div>
             `;
             
@@ -1995,7 +2005,7 @@
             `;
 
             if (availablePlayers.length === 0) {
-                html += `<p style="color: #999; font-style: italic;">All players assigned.</p>`;
+                html += `<p style="color: #999; font-style: italic;">${t.msgAllAssigned}</p>`;
             } else {
                 availablePlayers.forEach((player, idx) => {
                      // Find original index in global array to ensure uniqueness if needed, 
@@ -2045,8 +2055,9 @@
         };
         
         window.addPlayerToGroup = function(gIdx) {
+            const t = translations[currentLang];
             if (!swapSelection || swapSelection.type !== 'available') {
-                alert("Please select a player from the 'Available Players' list first.");
+                alert(t.alertSelectAvailable);
                 return;
             }
             
