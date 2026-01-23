@@ -702,6 +702,7 @@
                 optBestAvg: "🏆 Best Average Together",
                 btnGenerate: "Generate Pairings",
                 labelPairings: "📋 Generated Pairings & Foursomes",
+                labelGroup: "Group",
                 footerText: "© 2026 Application Property of Sylvain Trepanier"
             },
             fr: {
@@ -770,6 +771,7 @@
                 optBestAvg: "🏆 Meilleurs Scores Ensemble",
                 btnGenerate: "Générer les Équipes",
                 labelPairings: "📋 Équipes et Quatuors Générés",
+                labelGroup: "Quatuor",
                 footerText: "© 2026 Cette application est la propriété de Sylvain Trepanier"
             }
         };
@@ -1781,6 +1783,7 @@
 
             // Display results
             const container = document.getElementById('pairingsResults');
+            const t = translations[currentLang]; // Get current translations
             let html = `
                 <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                     <h3 style="margin-bottom: 10px; color: #4CAF50;">⛳ Game at ${courseName}</h3>
@@ -1805,7 +1808,7 @@
                 html += `
                     <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f9f9f9;">
                         <h4 style="margin-bottom: 10px; color: #333; display: flex; justify-content: space-between; align-items: center;">
-                            <span>Group ${i + 1} ${teeTimeDisplay}</span>
+                            <span>${t.labelGroup} ${i + 1} ${teeTimeDisplay}</span>
                             <span style="font-size: 0.9em; color: #666; font-weight: normal;">Avg: ${groupAvg}</span>
                         </h4>
                         <table style="width: 100%; border-collapse: collapse;">
