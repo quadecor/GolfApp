@@ -1265,6 +1265,8 @@
                 optChooseCourse: "-- Choose a course --",
                 alertSelectPlayers: "Please select at least one player from the Players tab!",
                 alertSelectDate: "Please select a date!",
+                alertSelectCourse: "Please select a course!",
+                alertSelectTime: "Please select a start time!",
                 alertGameSaved: "Game saved successfully!",
                 alertGameUpdated: "Game updated!",
                 alertSaveFailed: "Failed to save game",
@@ -1381,6 +1383,8 @@
                 optChooseCourse: "-- Choisir un terrain --",
                 alertSelectPlayers: "Veuillez sélectionner au moins un joueur dans l'onglet Joueurs !",
                 alertSelectDate: "Veuillez sélectionner une date !",
+                alertSelectCourse: "Veuillez sélectionner un terrain !",
+                alertSelectTime: "Veuillez sélectionner une heure de départ !",
                 alertGameSaved: "Partie sauvegardée avec succès !",
                 alertGameUpdated: "Partie mise à jour !",
                 alertSaveFailed: "Échec de la sauvegarde de la partie",
@@ -2445,13 +2449,23 @@
             
             // Get strategy & Time
             const strategy = document.querySelector('input[name="groupingStrategy"]:checked').value;
-            const courseName = document.getElementById('planningCourseSelect').value || "Unknown Course";
+            const courseName = document.getElementById('planningCourseSelect').value;
             const startTimeInput = document.getElementById('planningStartTime').value;
             const intervalInput = parseInt(document.getElementById('planningTimeInterval').value) || 10;
             const gameDate = document.getElementById('planningDate').value;
             
+            if (!courseName) {
+                alert(t.alertSelectCourse);
+                return;
+            }
+
             if (!gameDate) {
                 alert(t.alertSelectDate);
+                return;
+            }
+
+            if (!startTimeInput) {
+                alert(t.alertSelectTime);
                 return;
             }
 
