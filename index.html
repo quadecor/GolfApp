@@ -2537,6 +2537,12 @@
                 const t = translations[currentLang];
                 console.log('Course added successfully from API with detailed data');
                 alert(`✅ ${course.name} ${t.alertCourseAdded}`);
+                // Reset search
+                document.getElementById('apiSearchInput').value = '';
+                const resultsContainer = document.getElementById('apiSearchResults');
+                resultsContainer.innerHTML = '';
+                resultsContainer.classList.remove('show');
+                window.apiCoursesCache = [];
             }).catch((error) => {
                 const t = translations[currentLang];
                 console.error('Error adding course:', error);
