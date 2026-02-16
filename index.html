@@ -809,33 +809,12 @@
     <!-- Main App -->
     <div class="container" id="appContainer" style="display: none;">
         <!-- ... existing content ... -->
-        
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-card">
-            <h3 style="margin-bottom: 20px; color: #2196F3;">⚙️ Admin Settings</h3>
-            <form onsubmit="saveSettings(event)">
-                <div class="form-group">
-                    <label>New User Login</label>
-                    <input type="text" id="settingUser" required>
-                </div>
-                <div class="form-group">
-                    <label>New Password</label>
-                    <input type="text" id="settingPwd" required>
-                </div>
-                <div class="btn-container">
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
+
         <div class="header">
             <div class="help-toggle">
                 <button class="help-btn" onclick="openHelp()" title="Help / Aide">❓</button>
             </div>
             <div class="language-toggle">
-                <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
                 <button class="lang-btn active" onclick="changeLanguage('en')" id="btnEn">EN</button>
                 <button class="lang-btn" onclick="changeLanguage('fr')" id="btnFr">FR</button>
             </div>
@@ -1073,36 +1052,11 @@
                         document.getElementById('appContainer').style.display = 'block';
                         return;
                     } catch (authError) {
-                        // Fall back to legacy credentials if Firebase Auth fails
-                        console.log('Firebase Auth failed, trying legacy credentials', authError);
+                        console.log('Firebase Auth login failed:', authError.message);
+                        throw authError;
                     }
-                }
-                
-                // Legacy credential check (backwards compatibility)
-                let validUser = 'aztec';
-                let validPwd = 'golf';
-                
-                if (adminRef) {
-                    const snapshot = await adminRef.once('value');
-                    if (snapshot.exists()) {
-                        const creds = snapshot.val();
-                        validUser = creds.username || 'aztec';
-                        validPwd = creds.password || 'golf';
-                    } else {
-                        // First time run or empty DB: Save defaults to DB so they persist
-                        adminRef.set({ username: 'aztec', password: 'golf' });
-                    }
-                }
-
-                if (user === validUser && pwd === validPwd) {
-                    // Success with legacy auth
-                    window.currentUserId = 'default';
-                    initializeUserDatabase('default');
-                    showUserWelcome(user);
-                    document.getElementById('loginPage').style.display = 'none';
-                    document.getElementById('appContainer').style.display = 'block';
                 } else {
-                    throw new Error('Invalid credentials');
+                    throw new Error('Firebase Auth not available');
                 }
             } catch (err) {
                 console.error("Login failed", err);
@@ -1243,18 +1197,6 @@
             }
         }
         
-        // Settings / Admin Logic
-        function openSettings() {
-            document.getElementById('settingsModal').style.display = 'flex';
-            // Clear fields for security
-            document.getElementById('settingUser').value = '';
-            document.getElementById('settingPwd').value = '';
-        }
-
-        function closeSettings() {
-             document.getElementById('settingsModal').style.display = 'none';
-        }
-
         // Help Logic
         function openHelp() {
             document.getElementById('helpModal').style.display = 'flex';
@@ -1328,10 +1270,6 @@
                     <p>All saved games appear at the bottom of the Planning tab. Click <strong>"Load/Edit"</strong> to reload a previous game, modify it, and re-save.</p>
                 </div>
                 <div class="help-section">
-                    <h4>⚙️ Settings</h4>
-                    <p>Use the gear icon (⚙️) at the top right to change the legacy admin credentials (username/password).</p>
-                </div>
-                <div class="help-section">
                     <h4>📱 Install App</h4>
                     <p>On first visit, a banner appears at the bottom offering to <strong>install the app</strong> on your desktop or phone for quick access — works like a native app!</p>
                 </div>
@@ -1400,10 +1338,6 @@
                     <p>Toutes les parties sauvegardées apparaissent au bas de l'onglet Planification. Cliquez <strong>"Modifier/Charger"</strong> pour recharger une partie précédente, la modifier et la re-sauvegarder.</p>
                 </div>
                 <div class="help-section">
-                    <h4>⚙️ Paramètres</h4>
-                    <p>Utilisez l'icône d'engrenage (⚙️) en haut à droite pour changer les identifiants administrateur (nom d'utilisateur/mot de passe).</p>
-                </div>
-                <div class="help-section">
                     <h4>📱 Installer l'application</h4>
                     <p>À la première visite, une bannière apparaît en bas proposant d'<strong>installer l'application</strong> sur votre bureau ou téléphone pour un accès rapide — fonctionne comme une application native !</p>
                 </div>
@@ -1414,31 +1348,6 @@
 
         function closeHelp() {
             document.getElementById('helpModal').style.display = 'none';
-        }
-
-        function saveSettings(e) {
-            e.preventDefault();
-            const newUser = document.getElementById('settingUser').value;
-            const newPwd = document.getElementById('settingPwd').value;
-             
-            if(!newUser || !newPwd) {
-                alert("Please fill both fields");
-                return;
-            }
-
-            if(adminRef) {
-                adminRef.set({ username: newUser, password: newPwd })
-                    .then(() => {
-                        alert("Credentials updated successfully!");
-                        closeSettings();
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        alert("Failed to update credentials");
-                    });
-            } else {
-                alert("Database not connected");
-            }
         }
 
         // ========================================
@@ -1859,7 +1768,6 @@
         let playersRef;
         let coursesRef;
         let gamesRef;
-        let adminRef;
         let auth;
         
         try {
@@ -1869,7 +1777,6 @@
             playersRef = database.ref('players');
             coursesRef = database.ref('courses');
             gamesRef = database.ref('games');
-            adminRef = database.ref('admin/credentials');
             console.log('✅ Firebase connected successfully!');
             console.log('✅ Firebase Auth object:', auth);
             console.log('✅ Firebase Auth available:', !!auth);
