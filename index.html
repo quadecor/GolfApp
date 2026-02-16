@@ -1830,9 +1830,7 @@
             console.log('✅ All form elements loaded successfully');
         }
 
-        // Initialize - Load data from Firebase
-        loadPlayers();
-        loadCourses();
+        // Don't load data here — data loads after login via initializeUserDatabase()
         
         // Initialize language
         changeLanguage(currentLang);
@@ -3138,7 +3136,8 @@
             document.getElementById('pairingsResults').scrollIntoView({ behavior: 'smooth' });
         };
 
-        window.loadGameHistory = function() {
+        window.loadGameHistory = loadGameHistory;
+        function loadGameHistory() {
             const container = document.getElementById('historyContainer');
             const t = translations[currentLang];
             
