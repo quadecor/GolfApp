@@ -2291,66 +2291,8 @@
             resultsContainer.innerHTML = `<div class="loading">${t.searching}</div>`;
             resultsContainer.classList.add('show');
 
-            // Try multiple possible endpoints
-            const endpoints = [
-                `https://${RAPIDAPI_HOST}/courses?name=${encodeURIComponent(searchTerm)}`,
-                `https://${RAPIDAPI_HOST}/search?q=${encodeURIComponent(searchTerm)}`
-            ];
-
-            let apiSuccess = false;
-            let lastError = '';
-
-            for (let i = 0; i < endpoints.length; i++) {
-                try {
-                    console.log(`Trying endpoint ${i + 1}:`, endpoints[i]);
-                    
-                    const response = await fetch(endpoints[i], {
-                        method: 'GET',
-                        headers: {
-                            'X-RapidAPI-Key': RAPIDAPI_KEY,
-                            'X-RapidAPI-Host': RAPIDAPI_HOST
-                        }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('API Success! Data:', data);
-                        
-                        let courses = [];
-                        if (Array.isArray(data)) {
-                            courses = data;
-                        } else if (data.courses) {
-                            courses = data.courses;
-                        } else if (data.data) {
-                            courses = data.data;
-                        } else if (data.results) {
-                            courses = data.results;
-                        }
-                        
-                        if (courses.length > 0) {
-                            displayApiResults(courses);
-                            apiSuccess = true;
-                            return;
-                        }
-                    } else {
-                        lastError = `Status: ${response.status} (${response.statusText})`;
-                        if (response.status === 429) lastError = translations[currentLang].alertQuotaExceeded;
-                        if (response.status === 401 || response.status === 403) lastError = translations[currentLang].alertInvalidKey;
-                        console.log(`Endpoint ${i + 1} failed:`, response.status);
-                    }
-                } catch (error) {
-                    console.error(`Endpoint ${i + 1} error:`, error);
-                    lastError = error.message;
-                }
-            }
-            
-            // All endpoints failed
-            if (!apiSuccess) {
-                console.log('All API endpoints failed. Using sample data.');
-                const t = translations[currentLang];
-                const errorMsg = `<strong>${t.msgApiConnectionError}</strong><br>${lastError ? `Error: ${lastError}<br>` : ''}${t.msgShowingDatabase}`;
-                showSampleCourses(searchTerm, errorMsg);
-            }
+            // Search the built-in course database directly
+            showSampleCourses(searchTerm);
         };
 
         // Show sample courses if API fails
