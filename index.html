@@ -1265,59 +1265,147 @@
             
             const helpHTML = currentLang === 'en' ? `
                 <div class="help-section">
+                    <h4>� Account & Login</h4>
+                    <p>Each user has their own private database. Create an account with your <strong>Name</strong>, <strong>Email</strong>, and <strong>Password</strong>. After registration, log in with your email and password. Your data (players, courses, games) is private and accessible only to you.</p>
+                </div>
+                <div class="help-section">
+                    <h4>🌐 Language</h4>
+                    <p>Switch between <strong>English</strong> and <strong>French</strong> using the EN/FR buttons at the top right of the screen. The entire interface updates instantly.</p>
+                </div>
+                <div class="help-section">
                     <h4>👥 Players Tab</h4>
-                    <p>Manage your roster. <strong>Add players</strong> with their average score. Use the edit/delete buttons in the list to maintain your player database.</p>
+                    <p>Manage your player roster:</p>
+                    <ul>
+                        <li><strong>Add</strong> a player with their name and average score.</li>
+                        <li><strong>Edit</strong> or <strong>Delete</strong> players using the action buttons.</li>
+                        <li>Players are <strong>ranked automatically</strong> by score (lowest = best).</li>
+                        <li><strong>Select players</strong> using checkboxes to include them in game planning.</li>
+                        <li>Stats cards show total players, average score, and best player.</li>
+                    </ul>
                 </div>
                 <div class="help-section">
                     <h4>🏌️ Courses Tab</h4>
-                    <p>Manage golf courses. You can <strong>add custom courses</strong> manually or use the <strong>Search</strong> feature to find real courses from a database of 30,000+. Added courses will appear in the Planning dropdown.</p>
+                    <p>Manage your golf courses:</p>
+                    <ul>
+                        <li><strong>Search</strong> from a built-in database of 80+ South Florida courses by name, city, or state.</li>
+                        <li>Click <strong>"Add to My Courses"</strong> to save a course to your list.</li>
+                        <li><strong>Add manually</strong> with name, location, par, and number of holes.</li>
+                        <li><strong>Edit</strong> or <strong>Delete</strong> courses using the action buttons.</li>
+                        <li>Stats show total courses, average par, and total holes.</li>
+                    </ul>
                 </div>
                 <div class="help-section">
                     <h4>📅 Planning Tab</h4>
-                    <p>Organize your game!</p>
+                    <p>Organize your golf game step by step:</p>
                     <ul>
-                        <li>Select a <strong>Course</strong> and <strong>Date</strong>.</li>
-                        <li>Check "Available Players" list on the right.</li>
-                        <li>Choose a <strong>Strategy</strong>:
-                            <br>&nbsp;• <em>Mix & Match</em>: Randomizes groups.
-                            <br>&nbsp;• <em>Best Average</em>: Balances teams by skill.
+                        <li><strong>1.</strong> Go to Players tab and <strong>check the players</strong> who will participate.</li>
+                        <li><strong>2.</strong> Go to Planning tab, select a <strong>Course</strong>, <strong>Date</strong>, <strong>Start Time</strong>, and <strong>Interval</strong> between groups.</li>
+                        <li><strong>3.</strong> Choose a <strong>Grouping Strategy</strong>:
+                            <br>&nbsp;• 🎲 <em>Mix & Match</em>: Random groups.
+                            <br>&nbsp;• 🏆 <em>Best Average Together</em>: Balanced groups by skill level.
                         </li>
-                        <li><strong>Generate</strong>: Creates prompt pairings.</li>
-                        <li><strong>Edit</strong>: You can swap players by clicking them or add new ones with the (+) button.</li>
-                        <li><strong>Save</strong>: Keeps a history of your games below.</li>
+                        <li><strong>4.</strong> Click <strong>"Generate Pairings"</strong> to create foursomes with tee times.</li>
+                        <li><strong>5.</strong> Edit groups:
+                            <br>&nbsp;• Click <strong>two players</strong> to swap them between groups.
+                            <br>&nbsp;• Click <strong>(+)</strong> on a group to add available players.
+                            <br>&nbsp;• Click <strong>(✕)</strong> to remove a player from a group.
+                            <br>&nbsp;• Click <strong>"Add Foursome"</strong> to add a new empty group.
+                        </li>
+                        <li><strong>6.</strong> <strong>Save</strong> the game to keep a history.</li>
                     </ul>
+                </div>
+                <div class="help-section">
+                    <h4>📤 Sharing</h4>
+                    <p>After generating pairings, use the action buttons:</p>
+                    <ul>
+                        <li>🖨️ <strong>Print/PDF</strong>: Print or save as PDF.</li>
+                        <li>🔗 <strong>Share (Copy)</strong>: Copy pairings to clipboard.</li>
+                        <li>✉️ <strong>Email</strong>: Send pairings by email.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>📅 Game History</h4>
+                    <p>All saved games appear at the bottom of the Planning tab. Click <strong>"Load/Edit"</strong> to reload a previous game, modify it, and re-save.</p>
                 </div>
                 <div class="help-section">
                     <h4>⚙️ Settings</h4>
-                    <p>Use the gear icon (top right) to change your login credentials. Default is <em>aztec / golf</em>.</p>
+                    <p>Use the gear icon (⚙️) at the top right to change the legacy admin credentials (username/password).</p>
+                </div>
+                <div class="help-section">
+                    <h4>📱 Install App</h4>
+                    <p>On first visit, a banner appears at the bottom offering to <strong>install the app</strong> on your desktop or phone for quick access — works like a native app!</p>
                 </div>
             ` : `
                 <div class="help-section">
+                    <h4>🔐 Compte & Connexion</h4>
+                    <p>Chaque utilisateur a sa propre base de données privée. Créez un compte avec votre <strong>Nom</strong>, <strong>Courriel</strong> et <strong>Mot de passe</strong>. Après l'inscription, connectez-vous avec votre courriel et mot de passe. Vos données (joueurs, terrains, parties) sont privées et accessibles uniquement par vous.</p>
+                </div>
+                <div class="help-section">
+                    <h4>🌐 Langue</h4>
+                    <p>Basculez entre <strong>Anglais</strong> et <strong>Français</strong> avec les boutons EN/FR en haut à droite. Toute l'interface se met à jour instantanément.</p>
+                </div>
+                <div class="help-section">
                     <h4>👥 Onglet Joueurs</h4>
-                    <p>Gérez votre liste. <strong>Ajoutez des joueurs</strong> avec leur score moyen. Utilisez les boutons modifier/supprimer pour maintenir votre base de données à jour.</p>
-                </div>
-                <div class="help-section">
-                    <h4>🏌️ Onglet Terrains</h4>
-                    <p>Gérez les terrains de golf. Vous pouvez <strong>ajouter manuellement</strong> ou utiliser la <strong>Recherche</strong> pour trouver de vrais terrains parmi +30 000. Les terrains ajoutés apparaîtront dans la planification.</p>
-                </div>
-                <div class="help-section">
-                    <h4>📅 Onglet Planification</h4>
-                    <p>Organisez votre partie !</p>
+                    <p>Gérez votre liste de joueurs :</p>
                     <ul>
-                        <li>Choisissez un <strong>Terrain</strong> et une <strong>Date</strong>.</li>
-                        <li>Consultez la liste des "Joueurs Disponibles" à droite.</li>
-                        <li>Choisissez une <strong>Stratégie</strong> :
-                            <br>&nbsp;• <em>Mélanger</em> : Groupes aléatoires.
-                            <br>&nbsp;• <em>Meilleurs Scores</em> : Équilibre les équipes par niveau.
-                        </li>
-                        <li><strong>Générer</strong> : Crée les quatuors.</li>
-                        <li><strong>Modifier</strong> : Échangez les joueurs en cliquant dessus ou ajoutez-en avec le bouton (+).</li>
-                        <li><strong>Sauvegarder</strong> : Conserve un historique de vos parties en bas de page.</li>
+                        <li><strong>Ajoutez</strong> un joueur avec son nom et score moyen.</li>
+                        <li><strong>Modifiez</strong> ou <strong>Supprimez</strong> avec les boutons d'action.</li>
+                        <li>Les joueurs sont <strong>classés automatiquement</strong> par score (le plus bas = le meilleur).</li>
+                        <li><strong>Sélectionnez les joueurs</strong> avec les cases à cocher pour les inclure dans la planification.</li>
+                        <li>Les cartes de stats affichent le total des joueurs, le score moyen et le meilleur joueur.</li>
                     </ul>
                 </div>
                 <div class="help-section">
+                    <h4>🏌️ Onglet Terrains</h4>
+                    <p>Gérez vos terrains de golf :</p>
+                    <ul>
+                        <li><strong>Recherchez</strong> parmi une base de données de 80+ terrains du Sud de la Floride par nom, ville ou état.</li>
+                        <li>Cliquez <strong>"Ajouter à mes terrains"</strong> pour sauvegarder un terrain.</li>
+                        <li><strong>Ajoutez manuellement</strong> avec nom, emplacement, par et nombre de trous.</li>
+                        <li><strong>Modifiez</strong> ou <strong>Supprimez</strong> avec les boutons d'action.</li>
+                        <li>Les stats affichent le total des terrains, le par moyen et le total des trous.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>📅 Onglet Planification</h4>
+                    <p>Organisez votre partie de golf étape par étape :</p>
+                    <ul>
+                        <li><strong>1.</strong> Allez dans l'onglet Joueurs et <strong>cochez les joueurs</strong> qui participeront.</li>
+                        <li><strong>2.</strong> Allez dans Planification, sélectionnez un <strong>Terrain</strong>, une <strong>Date</strong>, l'<strong>Heure de départ</strong> et l'<strong>Intervalle</strong> entre les groupes.</li>
+                        <li><strong>3.</strong> Choisissez une <strong>Stratégie de groupe</strong> :
+                            <br>&nbsp;• 🎲 <em>Mélanger</em> : Groupes aléatoires.
+                            <br>&nbsp;• 🏆 <em>Meilleurs Scores Ensemble</em> : Groupes équilibrés par niveau.
+                        </li>
+                        <li><strong>4.</strong> Cliquez <strong>"Générer les Équipes"</strong> pour créer les quatuors avec heures de départ.</li>
+                        <li><strong>5.</strong> Modifiez les groupes :
+                            <br>&nbsp;• Cliquez sur <strong>deux joueurs</strong> pour les échanger entre groupes.
+                            <br>&nbsp;• Cliquez <strong>(+)</strong> sur un groupe pour ajouter des joueurs disponibles.
+                            <br>&nbsp;• Cliquez <strong>(✕)</strong> pour retirer un joueur d'un groupe.
+                            <br>&nbsp;• Cliquez <strong>"Ajouter un Foursome"</strong> pour créer un nouveau groupe vide.
+                        </li>
+                        <li><strong>6.</strong> <strong>Sauvegardez</strong> la partie pour conserver un historique.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>📤 Partage</h4>
+                    <p>Après avoir généré les équipes, utilisez les boutons d'action :</p>
+                    <ul>
+                        <li>🖨️ <strong>Imprimer/PDF</strong> : Imprimez ou sauvegardez en PDF.</li>
+                        <li>🔗 <strong>Partager (Copier)</strong> : Copiez les équipes dans le presse-papier.</li>
+                        <li>✉️ <strong>Courriel</strong> : Envoyez les équipes par courriel.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>📅 Historique des Parties</h4>
+                    <p>Toutes les parties sauvegardées apparaissent au bas de l'onglet Planification. Cliquez <strong>"Modifier/Charger"</strong> pour recharger une partie précédente, la modifier et la re-sauvegarder.</p>
+                </div>
+                <div class="help-section">
                     <h4>⚙️ Paramètres</h4>
-                    <p>Utilisez l'icône d'engrenage (haut droite) pour changer vos identifiants. Par défaut : <em>aztec / golf</em>.</p>
+                    <p>Utilisez l'icône d'engrenage (⚙️) en haut à droite pour changer les identifiants administrateur (nom d'utilisateur/mot de passe).</p>
+                </div>
+                <div class="help-section">
+                    <h4>📱 Installer l'application</h4>
+                    <p>À la première visite, une bannière apparaît en bas proposant d'<strong>installer l'application</strong> sur votre bureau ou téléphone pour un accès rapide — fonctionne comme une application native !</p>
                 </div>
             `;
             
