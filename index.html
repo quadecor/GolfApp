@@ -2431,16 +2431,12 @@
                 c.country.toLowerCase().includes(searchLower)
             );
             
-            const msg = customErrorMsg || t.msgApiUnavailable;
-
             if (filtered.length > 0) {
                 displayApiResults(filtered);
             } else {
-                displayApiResults(sampleCourses);
+                const resultsContainer = document.getElementById('apiSearchResults');
+                resultsContainer.innerHTML = `<div class="loading">${t.noResults}</div>`;
             }
-            
-            const resultsContainer = document.getElementById('apiSearchResults');
-            resultsContainer.innerHTML = `<div class="loading" style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 10px;">${msg}</div>` + resultsContainer.innerHTML;
         }
 
         // Display API search results
