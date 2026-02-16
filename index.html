@@ -1246,15 +1246,9 @@
         // Settings / Admin Logic
         function openSettings() {
             document.getElementById('settingsModal').style.display = 'flex';
-            // Prefill current values if possible, but for security maybe blank?
-            // Let's fetch current to show
-            if(adminRef) {
-                adminRef.once('value', (snapshot) => {
-                    const creds = snapshot.val() || { username: 'aztec', password: 'golf' };
-                    document.getElementById('settingUser').value = creds.username;
-                    document.getElementById('settingPwd').value = creds.password;
-                });
-            }
+            // Clear fields for security
+            document.getElementById('settingUser').value = '';
+            document.getElementById('settingPwd').value = '';
         }
 
         function closeSettings() {
