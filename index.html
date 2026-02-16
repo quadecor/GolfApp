@@ -1,0 +1,3206 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Players Manager</title>
+    <link rel="icon" type="image/png" href="le-golf.png">
+    <link rel="apple-touch-icon" href="le-golf.png">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: visible;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .lang-btn:hover {
+            background: white;
+            color: #2196F3;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #2196F3;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .table-section {
+            margin-top: 30px;
+        }
+
+        .table-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tbody tr {
+            transition: background-color 0.3s;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr.selected-row {
+            background-color: #e3f2fd;
+        }
+
+        .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+
+        .player-checkbox {
+            transform: scale(1.5);
+            cursor: pointer;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #0b7dda;
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #da190b;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+
+        .tab:hover {
+            color: #2196F3;
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .tab.active {
+            color: #2196F3;
+            border-bottom-color: #2196F3;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Swappable Players */
+        .player-card-swap {
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .player-card-swap:hover {
+            background: #f0f7ff;
+            border-color: #2196F3;
+        }
+
+        .player-card-swap.selected-swap {
+            background: #e3f2fd;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px #2196F3;
+        }
+
+        /* API Search Section */
+        .api-search-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .api-search-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid white;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .btn-search {
+            padding: 12px 30px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            display: none;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .course-result {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .course-info h4 {
+            margin-bottom: 5px;
+            color: #2196F3;
+        }
+
+        .course-info p {
+            margin: 3px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .btn-add-course {
+            padding: 8px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-add-course:hover {
+            background: #1976D2;
+            transform: scale(1.05);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.1em;
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: #2196F3;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .settings-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s;
+        }
+        
+        .settings-btn:hover {
+            background: white;
+            color: #2196F3;
+        }
+
+        .help-toggle {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+        }
+
+        .help-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .help-btn:hover {
+            background: white;
+            color: #2196F3;
+            transform: scale(1.1);
+        }
+
+        .help-content {
+            max-height: 70vh;
+            overflow-y: auto;
+            text-align: left;
+            padding-right: 10px;
+        }
+
+        .help-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .help-section:last-child {
+            border-bottom: none;
+        }
+
+        .help-section h4 {
+            color: #2196F3;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- RESPONSIVE DESIGN (MOBILE) --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                width: 100%;
+                overflow-x: hidden;
+            }
+
+            .header {
+                padding: 20px 15px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* Stack the header controls */
+            .help-toggle, .language-toggle {
+                position: static;
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+                margin-top: 5px;
+            }
+            
+            .header p {
+                font-size: 1em;
+                padding: 0 10px;
+            }
+
+            /* Modal adjustments */
+            .modal-card {
+                padding: 20px;
+                width: 90%;
+            }
+
+            /* Tabs adjust */
+            .tabs {
+                flex-wrap: wrap;
+                margin-bottom: 20px;
+            }
+            
+            .tab {
+                flex: 1 1 auto;
+                padding: 12px 10px;
+                font-size: 0.95em;
+                white-space: nowrap;
+            }
+            
+            /* Form inputs stack better */
+            .btn-container {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            /* Adjust stats cards */
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            /* Hide some non-critical table columns on really small screens if needed */
+            /* For now, just let table scroll if needed */
+            .table-section {
+                overflow-x: auto;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #appContainer, #appContainer * {
+                visibility: visible;
+            }
+            /* Hide everything in app container except the Printable Area */
+            #appContainer > * {
+                display: none;
+            }
+            #appContainer .content {
+                display: block;
+                padding: 0;
+            }
+            .content > * {
+                display: none;
+            }
+            #planningTab {
+                display: block !important;
+            }
+            #planningTab > * {
+                display: none;
+            }
+            #pairingsResults {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+            #pairingsResults * {
+                visibility: visible;
+            }
+            
+            /* Hide buttons and interactive elements in print view */
+            .no-print, button, .language-toggle, .help-toggle, .form-section, .table-section h2 {
+                display: none !important;
+            }
+            
+            /* Specific fix for the pairings graphics */
+            .player-card-swap button {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: #2196F3; font-size: 1.5em; margin: 0;" id="helpTitle">📖 User Guide</h3>
+                <button onclick="closeHelp()" style="background: none; border: none; font-size: 1.5em; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            
+            <div class="help-content" id="helpBody">
+                <!-- Content injected via JS based on language -->
+            </div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn btn-primary" onclick="closeHelp()" id="btnCloseHelp">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>⛳ Golf Manager</h2>
+                <p>Secured Access</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginUser">Login</label>
+                    <input type="text" id="loginUser" placeholder="Enter login" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPwd">Password</label>
+                    <input type="password" id="loginPwd" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Access</button>
+                <p id="loginError" style="color: #f44336; margin-top: 15px; display: none; text-align: center; font-weight: bold;">Invalid credentials</p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="showSignupForm()" style="width: 100%; background: #4CAF50;">
+                        ➕ Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Page -->
+    <div class="login-container" id="signupPage" style="display: none;">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>⛳ Golf Manager</h2>
+                <p>Create New Account</p>
+            </div>
+            <form id="signupForm" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="signupName">Name / Nom</label>
+                    <input type="text" id="signupName" placeholder="Your display name" required minlength="2">
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPwd">Password</label>
+                    <input type="password" id="signupPwd" placeholder="Enter password (min 6 characters)" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="signupPwdConfirm">Confirm Password</label>
+                    <input type="password" id="signupPwdConfirm" placeholder="Confirm password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+                <p id="signupError" style="color: #f44336; margin-top: 15px; display: none; text-align: center; font-weight: bold;"></p>
+                <p id="signupSuccess" style="color: #4CAF50; margin-top: 15px; display: none; text-align: center; font-weight: bold;"></p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="showLoginForm()" style="width: 100%;">
+                        ← Back to Login
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="container" id="appContainer" style="display: none;">
+        <!-- ... existing content ... -->
+        
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 20px; color: #2196F3;">⚙️ Admin Settings</h3>
+            <form onsubmit="saveSettings(event)">
+                <div class="form-group">
+                    <label>New User Login</label>
+                    <input type="text" id="settingUser" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="text" id="settingPwd" required>
+                </div>
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+        <div class="header">
+            <div class="help-toggle">
+                <button class="help-btn" onclick="openHelp()" title="Help / Aide">❓</button>
+            </div>
+            <div class="language-toggle">
+                <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+                <button class="lang-btn active" onclick="changeLanguage('en')" id="btnEn">EN</button>
+                <button class="lang-btn" onclick="changeLanguage('fr')" id="btnFr">FR</button>
+            </div>
+            <h1 id="headerTitle">⛳ Golf Players Manager</h1>
+            <p id="headerSubtitle">Manage your golf players and track their average scores</p>
+            <p id="userWelcome" style="display:none; margin-top:6px; font-size:0.95em; opacity:0.85;"></p>
+        </div>
+
+        <div class="content">
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('players')" id="tabPlayers">👥 Players</button>
+                <button class="tab" onclick="switchTab('courses')" id="tabCourses">🏌️ Courses</button>
+                <button class="tab" onclick="switchTab('planning')" id="tabPlanning">📅 Planning</button>
+            </div>
+
+            <!-- Players Tab Content -->
+            <div id="playersTab" class="tab-content active">
+                <div class="stats" id="stats">
+                    <div class="stat-card">
+                        <h3 id="labelTotalPlayers">Total Players</h3>
+                        <p id="totalPlayers">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="labelAvgScore">Average Score</h3>
+                        <p id="avgScore">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="labelBestPlayer">Best Player</h3>
+                        <p id="bestPlayer">-</p>
+                    </div>
+                </div>
+
+            <div class="form-section">
+                <h2 id="formTitle">➕ Add New Player</h2>
+                <form id="playerForm">
+                    <input type="hidden" id="editIndex" value="">
+                    <div class="form-group">
+                        <label for="playerName" id="labelPlayerName">Player Name</label>
+                        <input type="text" id="playerName" placeholder="Enter player name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="averageScore" id="labelAvgScoreInput">Average Score</label>
+                        <input type="number" id="averageScore" placeholder="Enter average score" step="0.1" required>
+                    </div>
+                    <div class="btn-container">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Add Player</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-section">
+                <h2 id="labelPlayersList">📋 Players List</h2>
+                <div id="tableContainer">
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <h3>No players yet</h3>
+                        <p>Add your first player to get started</p>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <!-- End Players Tab -->
+
+            <!-- Courses Tab Content -->
+            <div id="coursesTab" class="tab-content">
+                <div class="stats" id="courseStats">
+                    <div class="stat-card">
+                        <h3 id="labelTotalCourses">Total Courses</h3>
+                        <p id="totalCourses">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="labelAvgPar">Average Par</h3>
+                        <p id="avgPar">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="labelAvgHoles">Total Holes</h3>
+                        <p id="totalHoles">-</p>
+                    </div>
+                </div>
+
+                <!-- API Search Section -->
+                <div class="api-search-section">
+                    <h3 id="apiSearchTitle">🔍 Search Golf Courses (30,000+ courses)</h3>
+                    <div class="search-container">
+                        <input type="text" id="apiSearchInput" class="search-input" placeholder="Search by course name, city, or country...">
+                        <button type="button" class="btn-search" id="btnApiSearch" onclick="searchGolfCourses()">Search</button>
+                    </div>
+                    <div id="apiSearchResults" class="search-results"></div>
+                </div>
+
+                <div class="form-section">
+                    <h2 id="courseFormTitle">➕ Add New Course</h2>
+                    <form id="courseForm">
+                        <input type="hidden" id="editCourseIndex" value="">
+                        <div class="form-group">
+                            <label for="courseName" id="labelCourseName">Course Name</label>
+                            <input type="text" id="courseName" placeholder="Enter course name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseLocation" id="labelCourseLocation">Location</label>
+                            <input type="text" id="courseLocation" placeholder="Enter location" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="coursePar" id="labelCoursePar">Par</label>
+                            <input type="number" id="coursePar" placeholder="Enter par (e.g., 72)" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseHoles" id="labelCourseHoles">Number of Holes</label>
+                            <input type="number" id="courseHoles" placeholder="Enter number of holes (e.g., 18)" required>
+                        </div>
+                        <div class="btn-container">
+                            <button type="submit" class="btn btn-primary" id="submitCourseBtn">Add Course</button>
+                            <button type="button" class="btn btn-secondary" id="cancelCourseBtn" style="display: none;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-section">
+                    <h2 id="labelCoursesList">📋 Courses List</h2>
+                    <div id="coursesTableContainer">
+                        <div class="empty-state">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 id="labelNoCourses">No courses yet</h3>
+                            <p id="labelNoCoursesDesc">Add your first course to get started</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Courses Tab -->
+
+            <!-- Planning Tab Content -->
+            <div id="planningTab" class="tab-content">
+                <div class="form-section">
+                    <h2 id="planningTitle">⛳ Plan Golf Game</h2>
+                    
+                    <div class="form-group">
+                        <label id="labelSelectCourse">Select Course:</label>
+                        <select id="planningCourseSelect" class="search-input" style="width: 100%; margin-bottom: 15px;">
+                            <option value="">-- Choose a course --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label id="labelGameDate">Game Date:</label>
+                        <input type="date" id="planningDate" class="search-input" style="width: 100%; margin-bottom: 15px;">
+                    </div>
+
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label id="labelStartTime">First Tee Time:</label>
+                            <input type="time" id="planningStartTime" class="search-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label id="labelTimeInterval">Interval (min):</label>
+                            <input type="number" id="planningTimeInterval" class="search-input" style="width: 100%;" value="10" min="1">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label id="labelGameType">Grouping Strategy:</label>
+                        <div style="display: flex; gap: 20px; margin-top: 10px;">
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="groupingStrategy" value="random" checked>
+                                <span id="optMixMatch">🎲 Mix & Match (Random)</span>
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="groupingStrategy" value="best_together">
+                                <span id="optBestAvg">🏆 Best Average Together</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generatePairings()" id="btnGenerate">Generate Pairings</button>
+                </div>
+
+                <div class="table-section">
+                    <h2 id="labelPairings">📋 Generated Pairings & Foursomes</h2>
+                    <div id="pairingsResults">
+                        <div class="empty-state">
+                            <p id="msgSelectPlayers">Select players from the Players tab and click Generate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-section" style="margin-top: 40px; border-top: 2px solid #e0e0e0; padding-top: 30px;">
+                    <h2 id="labelHistory">📅 Game History</h2>
+                    <div id="historyContainer">
+                        <div class="loading" id="msgLoadingHistory">Loading history...</div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Planning Tab -->
+
+        </div>
+        
+        <div class="footer" style="text-align: center; margin-top: 40px; color: #666; font-size: 0.9em; padding-bottom: 20px;">
+            <p id="footerText">© 2026 Application Property of Sylvain Trepanier</p>
+        </div>
+    </div>
+
+    <script>
+        // Login Logic
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('loginUser').value;
+            const pwd = document.getElementById('loginPwd').value;
+            const errorMsg = document.getElementById('loginError');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            // Indicate loading
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.textContent = 'Verifying...';
+            submitBtn.disabled = true;
+
+            try {
+                // Try Firebase Auth first if available
+                if (auth && typeof auth.signInWithEmailAndPassword === 'function') {
+                    try {
+                        const userCredential = await auth.signInWithEmailAndPassword(user, pwd);
+                        const firebaseUser = userCredential.user;
+                        
+                        // Success with Firebase Auth
+                        window.currentUserId = firebaseUser.uid;
+                        initializeUserDatabase(firebaseUser.uid);
+                        // Show user's name in header
+                        const userName = firebaseUser.displayName || firebaseUser.email || 'User';
+                        showUserWelcome(userName);
+                        document.getElementById('loginPage').style.display = 'none';
+                        document.getElementById('appContainer').style.display = 'block';
+                        return;
+                    } catch (authError) {
+                        // Fall back to legacy credentials if Firebase Auth fails
+                        console.log('Firebase Auth failed, trying legacy credentials', authError);
+                    }
+                }
+                
+                // Legacy credential check (backwards compatibility)
+                let validUser = 'aztec';
+                let validPwd = 'golf';
+                
+                if (adminRef) {
+                    const snapshot = await adminRef.once('value');
+                    if (snapshot.exists()) {
+                        const creds = snapshot.val();
+                        validUser = creds.username || 'aztec';
+                        validPwd = creds.password || 'golf';
+                    } else {
+                        // First time run or empty DB: Save defaults to DB so they persist
+                        adminRef.set({ username: 'aztec', password: 'golf' });
+                    }
+                }
+
+                if (user === validUser && pwd === validPwd) {
+                    // Success with legacy auth
+                    window.currentUserId = 'default';
+                    initializeUserDatabase('default');
+                    showUserWelcome(user);
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('appContainer').style.display = 'block';
+                } else {
+                    throw new Error('Invalid credentials');
+                }
+            } catch (err) {
+                console.error("Login failed", err);
+                // Fail
+                errorMsg.textContent = 'Invalid credentials';
+                errorMsg.style.display = 'block';
+                // Shake effect
+                const card = document.querySelector('.login-card');
+                card.style.transform = 'translateX(10px)';
+                setTimeout(() => card.style.transform = 'translateX(-10px)', 100);
+                setTimeout(() => card.style.transform = 'translateX(0)', 200);
+            } finally {
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        function showSignupForm() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('signupPage').style.display = 'flex';
+        }
+
+        function showLoginForm() {
+            document.getElementById('signupPage').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'flex';
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const displayName = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPwd').value;
+            const confirmPwd = document.getElementById('signupPwdConfirm').value;
+            const errorMsg = document.getElementById('signupError');
+            const successMsg = document.getElementById('signupSuccess');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            // Hide previous messages
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            // Validate passwords match
+            if (password !== confirmPwd) {
+                errorMsg.textContent = 'Passwords do not match!';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Indicate loading
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating Account...';
+            submitBtn.disabled = true;
+
+            try {
+                // Check if Firebase Auth is available
+                if (!auth || typeof auth.createUserWithEmailAndPassword !== 'function') {
+                    throw new Error('Firebase Authentication is not configured. Please check that Firebase Auth is enabled in your Firebase Console.');
+                }
+
+                // Create user with email and password
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Update Firebase Auth profile with display name
+                await user.updateProfile({ displayName: displayName });
+
+                // Create user's own database structure
+                const userDbRef = database.ref(`users/${user.uid}`);
+                await userDbRef.set({
+                    profile: {
+                        displayName: displayName,
+                        email: email,
+                        createdAt: Date.now()
+                    },
+                    players: {},
+                    courses: {},
+                    games: {},
+                    settings: {
+                        language: 'en'
+                    }
+                });
+
+                // Show success message
+                successMsg.textContent = `Account created successfully! You can now log in with your email and password.`;
+                successMsg.style.display = 'block';
+
+                // Clear form
+                document.getElementById('signupForm').reset();
+
+                // Redirect to login after 5 seconds
+                setTimeout(() => {
+                    showLoginForm();
+                }, 5000);
+
+            } catch (err) {
+                console.error("Signup failed", err);
+                
+                // Handle specific Firebase errors
+                let errorMessage = 'Failed to create account. Please try again.';
+                if (err.code === 'auth/email-already-in-use') {
+                    errorMessage = 'This email is already registered. Please login instead.';
+                } else if (err.code === 'auth/weak-password') {
+                    errorMessage = 'Password is too weak. Use at least 6 characters.';
+                } else if (err.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email address.';
+                } else if (err.message) {
+                    errorMessage = err.message;
+                }
+                
+                errorMsg.textContent = errorMessage;
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.textContent = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        function initializeUserDatabase(userId) {
+            // Update Firebase references to use user-specific paths
+            currentUserId = userId;
+            playersRef = firebase.database().ref(`users/${userId}/players`);
+            coursesRef = firebase.database().ref(`users/${userId}/courses`);
+            gamesRef = firebase.database().ref(`users/${userId}/games`);
+            userProfileRef = firebase.database().ref(`users/${userId}/profile`);
+            userSettingsRef = firebase.database().ref(`users/${userId}/settings`);
+            
+            // Reload data for this user
+            loadPlayers();
+            loadCourses();
+            loadGameHistory();
+        }
+
+        function showUserWelcome(name) {
+            const el = document.getElementById('userWelcome');
+            if (el) {
+                el.textContent = `👤 ${name}`;
+                el.style.display = 'block';
+            }
+        }
+        
+        // Settings / Admin Logic
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            // Prefill current values if possible, but for security maybe blank?
+            // Let's fetch current to show
+            if(adminRef) {
+                adminRef.once('value', (snapshot) => {
+                    const creds = snapshot.val() || { username: 'aztec', password: 'golf' };
+                    document.getElementById('settingUser').value = creds.username;
+                    document.getElementById('settingPwd').value = creds.password;
+                });
+            }
+        }
+
+        function closeSettings() {
+             document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        // Help Logic
+        function openHelp() {
+            document.getElementById('helpModal').style.display = 'flex';
+            const t = translations[currentLang];
+            
+            document.getElementById('helpTitle').textContent = currentLang === 'en' ? "📖 User Guide" : "📖 Guide d'utilisation";
+            document.getElementById('btnCloseHelp').textContent = currentLang === 'en' ? "Close" : "Fermer";
+            
+            const helpHTML = currentLang === 'en' ? `
+                <div class="help-section">
+                    <h4>👥 Players Tab</h4>
+                    <p>Manage your roster. <strong>Add players</strong> with their average score. Use the edit/delete buttons in the list to maintain your player database.</p>
+                </div>
+                <div class="help-section">
+                    <h4>🏌️ Courses Tab</h4>
+                    <p>Manage golf courses. You can <strong>add custom courses</strong> manually or use the <strong>Search</strong> feature to find real courses from a database of 30,000+. Added courses will appear in the Planning dropdown.</p>
+                </div>
+                <div class="help-section">
+                    <h4>📅 Planning Tab</h4>
+                    <p>Organize your game!</p>
+                    <ul>
+                        <li>Select a <strong>Course</strong> and <strong>Date</strong>.</li>
+                        <li>Check "Available Players" list on the right.</li>
+                        <li>Choose a <strong>Strategy</strong>:
+                            <br>&nbsp;• <em>Mix & Match</em>: Randomizes groups.
+                            <br>&nbsp;• <em>Best Average</em>: Balances teams by skill.
+                        </li>
+                        <li><strong>Generate</strong>: Creates prompt pairings.</li>
+                        <li><strong>Edit</strong>: You can swap players by clicking them or add new ones with the (+) button.</li>
+                        <li><strong>Save</strong>: Keeps a history of your games below.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>⚙️ Settings</h4>
+                    <p>Use the gear icon (top right) to change your login credentials. Default is <em>aztec / golf</em>.</p>
+                </div>
+            ` : `
+                <div class="help-section">
+                    <h4>👥 Onglet Joueurs</h4>
+                    <p>Gérez votre liste. <strong>Ajoutez des joueurs</strong> avec leur score moyen. Utilisez les boutons modifier/supprimer pour maintenir votre base de données à jour.</p>
+                </div>
+                <div class="help-section">
+                    <h4>🏌️ Onglet Terrains</h4>
+                    <p>Gérez les terrains de golf. Vous pouvez <strong>ajouter manuellement</strong> ou utiliser la <strong>Recherche</strong> pour trouver de vrais terrains parmi +30 000. Les terrains ajoutés apparaîtront dans la planification.</p>
+                </div>
+                <div class="help-section">
+                    <h4>📅 Onglet Planification</h4>
+                    <p>Organisez votre partie !</p>
+                    <ul>
+                        <li>Choisissez un <strong>Terrain</strong> et une <strong>Date</strong>.</li>
+                        <li>Consultez la liste des "Joueurs Disponibles" à droite.</li>
+                        <li>Choisissez une <strong>Stratégie</strong> :
+                            <br>&nbsp;• <em>Mélanger</em> : Groupes aléatoires.
+                            <br>&nbsp;• <em>Meilleurs Scores</em> : Équilibre les équipes par niveau.
+                        </li>
+                        <li><strong>Générer</strong> : Crée les quatuors.</li>
+                        <li><strong>Modifier</strong> : Échangez les joueurs en cliquant dessus ou ajoutez-en avec le bouton (+).</li>
+                        <li><strong>Sauvegarder</strong> : Conserve un historique de vos parties en bas de page.</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h4>⚙️ Paramètres</h4>
+                    <p>Utilisez l'icône d'engrenage (haut droite) pour changer vos identifiants. Par défaut : <em>aztec / golf</em>.</p>
+                </div>
+            `;
+            
+            document.getElementById('helpBody').innerHTML = helpHTML;
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').style.display = 'none';
+        }
+
+        function saveSettings(e) {
+            e.preventDefault();
+            const newUser = document.getElementById('settingUser').value;
+            const newPwd = document.getElementById('settingPwd').value;
+             
+            if(!newUser || !newPwd) {
+                alert("Please fill both fields");
+                return;
+            }
+
+            if(adminRef) {
+                adminRef.set({ username: newUser, password: newPwd })
+                    .then(() => {
+                        alert("Credentials updated successfully!");
+                        closeSettings();
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        alert("Failed to update credentials");
+                    });
+            } else {
+                alert("Database not connected");
+            }
+        }
+
+        // ========================================
+        // TRANSLATIONS
+        // ========================================
+        const translations = {
+            en: {
+                headerTitle: "⛳ Golf Players Manager",
+                headerSubtitle: "Golf Party Organizer",
+                tabPlayers: "👥 Players",
+                tabCourses: "🏌️ Courses",
+                labelTotalPlayers: "Total Players",
+                labelAvgScore: "Average Score",
+                labelBestPlayer: "Best Player",
+                formTitleAdd: "➕ Add New Player",
+                formTitleEdit: "✏️ Edit Player",
+                labelPlayerName: "Player Name",
+                labelAvgScoreInput: "Average Score",
+                placeholderName: "Enter player name",
+                placeholderScore: "Enter average score",
+                btnAdd: "Add Player",
+                btnUpdate: "Update Player",
+                btnCancel: "Cancel",
+                labelPlayersList: "📋 Players List",
+                noPlayers: "No players yet",
+                noPlayersDesc: "Add your first player to get started",
+                rank: "Rank",
+                actions: "Actions",
+                btnEdit: "Edit",
+                btnDelete: "Delete",
+                confirmDelete: "Are you sure you want to delete",
+                alertFillFields: "Please fill in all fields correctly",
+                alertConfigFirebase: "Please configure Firebase settings in the code!",
+                // Courses
+                labelTotalCourses: "Total Courses",
+                labelAvgPar: "Average Par",
+                labelAvgHoles: "Total Holes",
+                courseFormTitleAdd: "➕ Add New Course",
+                courseFormTitleEdit: "✏️ Edit Course",
+                labelCourseName: "Course Name",
+                labelCourseLocation: "Location",
+                labelCoursePar: "Par",
+                labelCourseHoles: "Number of Holes",
+                placeholderCourseName: "Enter course name",
+                placeholderCourseLocation: "Enter location",
+                placeholderCoursePar: "Enter par (e.g., 72)",
+                placeholderCourseHoles: "Enter number of holes (e.g., 18)",
+                btnAddCourse: "Add Course",
+                btnUpdateCourse: "Update Course",
+                labelCoursesList: "📋 Courses List",
+                labelNoCourses: "No courses yet",
+                labelNoCoursesDesc: "Add your first course to get started",
+                location: "Location",
+                // API Search
+                apiSearchTitle: "🔍 Search Golf Courses (30,000+ courses)",
+                apiSearchPlaceholder: "Search by course name, city, or country...",
+                btnSearch: "Search",
+                btnAddToCourses: "Add to My Courses",
+                searching: "Searching...",
+                noResults: "No courses found. Try a different search term.",
+                holes: "holes",
+                msgApiUnavailable: "⚠️ API unavailable. Showing sample famous courses.",
+                msgApiConnectionError: "⚠️ API Connection Issue",
+                msgShowingDatabase: "Showing database matches instead.",
+                msgLocationUnknown: "Location not specified",
+                msgUnknownCourse: "Unknown Course",
+                unitYards: "yards",
+                /* API Result Labels */
+                labelRating: "Rating",
+                labelSlope: "Slope",
+                labelDesigner: "Designer",
+                labelType: "Type",
+                alertCourseAdded: "added to your courses!",
+                alertAddCourseFailed: "Failed to add course",
+                alertQuotaExceeded: "Quota Exceeded (429)",
+                alertInvalidKey: "Invalid API Key (401/403)",
+                // Planning
+                tabPlanning: "📅 Planning",
+                planningTitle: "⛳ Plan Golf Game",
+                labelSelectCourse: "Select Course:",
+                labelGameType: "Grouping Strategy:",
+                labelStartTime: "First Tee Time:",
+                labelTimeInterval: "Interval (min):",
+                optMixMatch: "🎲 Mix & Match (Random)",
+                optBestAvg: "🏆 Best Average Together",
+                btnGenerate: "Generate Pairings",
+                btnSaveGame: "💾 Save Game",
+                btnUpdateGame: "💾 Update Game",
+                btnLoadGame: "✏️ Load/Edit",
+                labelPairings: "📋 Generated Pairings & Foursomes",
+                labelAvailable: "👥 Available Players",
+                msgAvailability: "Click to Select/Add to group",
+                labelGroup: "Group",
+                labelGameDate: "Game Date:",
+                labelHistory: "📅 Game History",
+                noHistory: "No saved games yet.",
+                msgSwapInstruction: "💡 Click two players to swap them.",
+                msgSelectPlayers: "Select players from the Players tab and click Generate",
+                msgLoadingHistory: "Loading history...",
+                optChooseCourse: "-- Choose a course --",
+                alertSelectPlayers: "Please select at least one player from the Players tab!",
+                alertSelectDate: "Please select a date!",
+                alertSelectCourse: "Please select a course!",
+                alertSelectTime: "Please select a start time!",
+                alertGameSaved: "Game saved successfully!",
+                alertGameUpdated: "Game updated!",
+                alertSaveFailed: "Failed to save game",
+                // New translations
+                msgEmptyGroup: "Empty Group",
+                btnCancelEdit: "Cancel Edit",
+                msgAllAssigned: "All players assigned.",
+                alertSelectAvailable: "Please select a player from the 'Available Players' list first.",
+                labelGameAt: "Game at",
+                labelStrategy: "Strategy",
+                labelAvg: "Avg",
+                tooltipAddPlayer: "Add Selected Player",
+                footerText: "© 2026 Application Property of Sylvain Trepanier",
+                // Sharing
+                btnShare: "Share (Copy)",
+                btnEmail: "Email",
+                btnPrint: "Print/PDF",
+                btnAddFoursome: "Add Foursome",
+                msgCopied: "Copied to clipboard!",
+                msgShareError: "Error sharing"
+            },
+            fr: {
+                headerTitle: "⛳ Gestionnaire de Golf",
+                headerSubtitle: "Organisateur de parti de golf",
+                tabPlayers: "👥 Joueurs",
+                tabCourses: "🏌️ Terrains",
+                labelTotalPlayers: "Total Joueurs",
+                labelAvgScore: "Score Moyen",
+                labelBestPlayer: "Meilleur Joueur",
+                formTitleAdd: "➕ Ajouter un Joueur",
+                formTitleEdit: "✏️ Modifier le Joueur",
+                labelPlayerName: "Nom du Joueur",
+                labelAvgScoreInput: "Score Moyen",
+                placeholderName: "Entrez le nom du joueur",
+                placeholderScore: "Entrez le score moyen",
+                btnAdd: "Ajouter Joueur",
+                btnUpdate: "Mettre à Jour",
+                btnCancel: "Annuler",
+                labelPlayersList: "📋 Liste des Joueurs",
+                noPlayers: "Aucun joueur pour le moment",
+                noPlayersDesc: "Ajoutez votre premier joueur pour commencer",
+                rank: "Rang",
+                actions: "Actions",
+                btnEdit: "Modifier",
+                btnDelete: "Supprimer",
+                confirmDelete: "Êtes-vous sûr de vouloir supprimer",
+                alertFillFields: "Veuillez remplir tous les champs correctement",
+                alertConfigFirebase: "Veuillez configurer les paramètres Firebase dans le code!",
+                // Courses
+                labelTotalCourses: "Total Terrains",
+                labelAvgPar: "Par Moyen",
+                labelAvgHoles: "Total Trous",
+                courseFormTitleAdd: "➕ Ajouter un Terrain",
+                courseFormTitleEdit: "✏️ Modifier le Terrain",
+                labelCourseName: "Nom du Terrain",
+                labelCourseLocation: "Emplacement",
+                labelCoursePar: "Par",
+                labelCourseHoles: "Nombre de Trous",
+                placeholderCourseName: "Entrez le nom du terrain",
+                placeholderCourseLocation: "Entrez l'emplacement",
+                placeholderCoursePar: "Entrez le par (ex: 72)",
+                placeholderCourseHoles: "Entrez le nombre de trous (ex: 18)",
+                btnAddCourse: "Ajouter Terrain",
+                btnUpdateCourse: "Mettre à Jour",
+                labelCoursesList: "📋 Liste des Terrains",
+                labelNoCourses: "Aucun terrain pour le moment",
+                labelNoCoursesDesc: "Ajoutez votre premier terrain pour commencer",
+                location: "Emplacement",
+                // API Search
+                apiSearchTitle: "🔍 Rechercher des Terrains (30 000+ terrains)",
+                apiSearchPlaceholder: "Rechercher par nom, ville ou pays...",
+                btnSearch: "Rechercher",
+                btnAddToCourses: "Ajouter à mes terrains",
+                searching: "Recherche en cours...",
+                noResults: "Aucun terrain trouvé. Essayez un autre terme de recherche.",
+                holes: "trous",
+                msgApiUnavailable: "⚠️ API indisponible. Affichage de terrains célèbres.",
+                msgApiConnectionError: "⚠️ Problème de Connexion API",
+                msgShowingDatabase: "Affichage des résultats de la base de données.",
+                msgLocationUnknown: "Emplacement non spécifié",
+                msgUnknownCourse: "Terrain Inconnu",
+                unitYards: "verges",
+                /* API Result Labels */
+                labelRating: "Éval",
+                labelSlope: "Pente",
+                labelDesigner: "Architecte",
+                labelType: "Type",
+                alertCourseAdded: "ajouté à vos terrains !",
+                alertAddCourseFailed: "Échec de l'ajout du terrain",
+                alertQuotaExceeded: "Quota Dépassé (429)",
+                alertInvalidKey: "Clé API Invalide (401/403)",
+                // Planning
+                tabPlanning: "📅 Planification",
+                planningTitle: "⛳ Planifier une Partie",
+                labelSelectCourse: "Choisir un Terrain :",
+                labelGameType: "Stratégie de Groupe :",
+                labelStartTime: "Premier Départ :",
+                labelTimeInterval: "Intervalle (min) :",
+                optMixMatch: "🎲 Mélanger (Aléatoire)",
+                optBestAvg: "🏆 Meilleurs Scores Ensemble",
+                btnGenerate: "Générer les Équipes",
+                btnSaveGame: "💾 Sauvegarder la Partie",
+                btnUpdateGame: "💾 Mettre à Jour la Partie",
+                btnLoadGame: "✏️ Modifier/Charger",
+                labelPairings: "📋 Équipes et Quatuors Générés",
+                labelAvailable: "👥 Joueurs Disponibles",
+                msgAvailability: "Cliquez pour Sélectionner/Ajouter au groupe",
+                labelGroup: "Quatuor",
+                labelGameDate: "Date de la Partie :",
+                labelHistory: "📅 Historique des Parties",
+                noHistory: "Aucune partie sauvegardée.",
+                msgSwapInstruction: "💡 Cliquez sur deux joueurs pour les échanger.",
+                msgSelectPlayers: "Sélectionnez des joueurs dans l'onglet Joueurs et cliquez sur Générer",
+                msgLoadingHistory: "Chargement de l'historique...",
+                optChooseCourse: "-- Choisir un terrain --",
+                alertSelectPlayers: "Veuillez sélectionner au moins un joueur dans l'onglet Joueurs !",
+                alertSelectDate: "Veuillez sélectionner une date !",
+                alertSelectCourse: "Veuillez sélectionner un terrain !",
+                alertSelectTime: "Veuillez sélectionner une heure de départ !",
+                alertGameSaved: "Partie sauvegardée avec succès !",
+                alertGameUpdated: "Partie mise à jour !",
+                alertSaveFailed: "Échec de la sauvegarde de la partie",
+                // New translations
+                msgEmptyGroup: "Groupe Vide",
+                btnCancelEdit: "Annuler Modification",
+                msgAllAssigned: "Tous les joueurs sont assignés.",
+                alertSelectAvailable: "Veuillez d'abord sélectionner un joueur dans la liste 'Joueurs Disponibles'.",
+                labelGameAt: "Partie à",
+                labelStrategy: "Stratégie",
+                labelAvg: "Moy",
+                tooltipAddPlayer: "Ajouter le joueur sélectionné",
+                footerText: "© 2026 Cette application est la propriété de Sylvain Trepanier",
+                // Partage
+                btnShare: "Partager (Copier)",
+                btnEmail: "Courriel",
+                btnPrint: "Imprimer/PDF",
+                btnAddFoursome: "Ajouter un Foursome",
+                msgCopied: "Copié dans le presse-papier !",
+                msgShareError: "Erreur de partage"
+            }
+        };
+
+        // Current language
+        let currentLang = localStorage.getItem('golfAppLanguage') || 'en';
+        
+        // Game planning variables
+        let currentGameData = null;
+        let swapSelection = null; // {gIdx, pIdx}
+
+        // Change language function
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('golfAppLanguage', lang);
+            
+            // Update button states
+            document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+            document.getElementById('btnFr').classList.toggle('active', lang === 'fr');
+            
+            // Update all text
+            updateLanguage();
+        }
+
+        // Update all text based on current language
+        function updateLanguage() {
+            const t = translations[currentLang];
+            
+            try {
+                // Header
+                if(document.getElementById('headerTitle')) document.getElementById('headerTitle').textContent = t.headerTitle;
+                if(document.getElementById('headerSubtitle')) document.getElementById('headerSubtitle').textContent = t.headerSubtitle;
+                if(document.getElementById('footerText')) document.getElementById('footerText').textContent = t.footerText;
+                
+                // Tabs
+                if(document.getElementById('tabPlayers')) document.getElementById('tabPlayers').innerHTML = t.tabPlayers;
+                if(document.getElementById('tabCourses')) document.getElementById('tabCourses').innerHTML = t.tabCourses;
+                if(document.getElementById('tabPlanning')) document.getElementById('tabPlanning').innerHTML = t.tabPlanning;
+                
+                // Players section
+                if(document.getElementById('labelTotalPlayers')) document.getElementById('labelTotalPlayers').textContent = t.labelTotalPlayers;
+                if(document.getElementById('labelAvgScore')) document.getElementById('labelAvgScore').textContent = t.labelAvgScore;
+                if(document.getElementById('labelBestPlayer')) document.getElementById('labelBestPlayer').textContent = t.labelBestPlayer;
+                if(document.getElementById('labelPlayerName')) document.getElementById('labelPlayerName').textContent = t.labelPlayerName;
+                if(document.getElementById('labelAvgScoreInput')) document.getElementById('labelAvgScoreInput').textContent = t.labelAvgScoreInput;
+                if(document.getElementById('playerName')) document.getElementById('playerName').placeholder = t.placeholderName;
+                if(document.getElementById('averageScore')) document.getElementById('averageScore').placeholder = t.placeholderScore;
+                if(document.getElementById('cancelBtn')) document.getElementById('cancelBtn').textContent = t.btnCancel;
+                if(document.getElementById('labelPlayersList')) document.getElementById('labelPlayersList').textContent = t.labelPlayersList;
+                
+                // Update form title based on edit state
+                if(typeof editIndex !== 'undefined' && editIndex) {
+                    const isEditing = editIndex.value !== '';
+                    if(document.getElementById('formTitle')) document.getElementById('formTitle').textContent = isEditing ? t.formTitleEdit : t.formTitleAdd;
+                    if(document.getElementById('submitBtn')) document.getElementById('submitBtn').textContent = isEditing ? t.btnUpdate : t.btnAdd;
+                }
+                            
+                // Courses section
+                if(document.getElementById('labelTotalCourses')) document.getElementById('labelTotalCourses').textContent = t.labelTotalCourses;
+                if(document.getElementById('labelAvgPar')) document.getElementById('labelAvgPar').textContent = t.labelAvgPar;
+                if(document.getElementById('labelAvgHoles')) document.getElementById('labelAvgHoles').textContent = t.labelAvgHoles;
+                if(document.getElementById('apiSearchTitle')) document.getElementById('apiSearchTitle').textContent = t.apiSearchTitle;
+                if(document.getElementById('apiSearchInput')) document.getElementById('apiSearchInput').placeholder = t.apiSearchPlaceholder;
+                if(document.getElementById('btnApiSearch')) document.getElementById('btnApiSearch').textContent = t.btnSearch;
+                if(document.getElementById('labelCourseName')) document.getElementById('labelCourseName').textContent = t.labelCourseName;
+                if(document.getElementById('labelCourseLocation')) document.getElementById('labelCourseLocation').textContent = t.labelCourseLocation;
+                if(document.getElementById('labelCoursePar')) document.getElementById('labelCoursePar').textContent = t.labelCoursePar;
+                if(document.getElementById('labelCourseHoles')) document.getElementById('labelCourseHoles').textContent = t.labelCourseHoles;
+                if(document.getElementById('courseName')) document.getElementById('courseName').placeholder = t.placeholderCourseName;
+                if(document.getElementById('courseLocation')) document.getElementById('courseLocation').placeholder = t.placeholderCourseLocation;
+                if(document.getElementById('coursePar')) document.getElementById('coursePar').placeholder = t.placeholderCoursePar;
+                if(document.getElementById('courseHoles')) document.getElementById('courseHoles').placeholder = t.placeholderCourseHoles;
+                if(document.getElementById('cancelCourseBtn')) document.getElementById('cancelCourseBtn').textContent = t.btnCancel;
+                if(document.getElementById('labelCoursesList')) document.getElementById('labelCoursesList').textContent = t.labelCoursesList;
+                if(document.getElementById('labelNoCourses')) document.getElementById('labelNoCourses').textContent = t.labelNoCourses;
+                if(document.getElementById('labelNoCoursesDesc')) document.getElementById('labelNoCoursesDesc').textContent = t.labelNoCoursesDesc;
+            } catch(e) { console.error("Error in core translation updates", e); }
+            
+            // Update course form title based on edit state
+            try {
+                if(typeof editCourseIndex !== 'undefined' && editCourseIndex) {
+                    const isCourseEditing = editCourseIndex.value !== '';
+                    if(document.getElementById('courseFormTitle')) document.getElementById('courseFormTitle').textContent = isCourseEditing ? t.courseFormTitleEdit : t.courseFormTitleAdd;
+                    if(document.getElementById('submitCourseBtn')) document.getElementById('submitCourseBtn').textContent = isCourseEditing ? t.btnUpdateCourse : t.btnAddCourse;
+                }
+            } catch(e) { console.error("Error updating course form title", e); }
+            
+            // Redisplay players and courses to update table headers
+            try { displayPlayers(); } catch(e) { console.error("Error displaying players", e); }
+            try { displayCourses(); } catch(e) { console.error("Error displaying courses", e); }
+
+            // Planning
+            try {
+                if (document.getElementById('planningTitle')) {
+                    document.getElementById('planningTitle').textContent = t.planningTitle;
+                    document.getElementById('labelSelectCourse').textContent = t.labelSelectCourse;
+                    document.getElementById('labelGameType').textContent = t.labelGameType;
+                    document.getElementById('labelStartTime').textContent = t.labelStartTime;
+                    document.getElementById('labelTimeInterval').textContent = t.labelTimeInterval;
+                    document.getElementById('optMixMatch').innerHTML = t.optMixMatch; // Use innerHTML for emoji
+                    document.getElementById('optBestAvg').innerHTML = t.optBestAvg; // Use innerHTML for emoji
+                    document.getElementById('btnGenerate').textContent = t.btnGenerate;
+                    document.getElementById('labelPairings').textContent = t.labelPairings;
+                    document.getElementById('labelGameDate').textContent = t.labelGameDate;
+                    document.getElementById('labelHistory').textContent = t.labelHistory;
+                    if (document.getElementById('msgSelectPlayers')) document.getElementById('msgSelectPlayers').textContent = t.msgSelectPlayers;
+                    if (document.getElementById('msgLoadingHistory')) document.getElementById('msgLoadingHistory').textContent = t.msgLoadingHistory;
+                    if (document.getElementById('labelAvailable')) document.getElementById('labelAvailable').textContent = t.labelAvailable;
+                    if (document.getElementById('msgAvailability')) document.getElementById('msgAvailability').textContent = t.msgAvailability;
+                    
+                    // Update dropdown default option if it exists
+                    const courseSelect = document.getElementById('planningCourseSelect');
+                    if (courseSelect && courseSelect.options.length > 0 && courseSelect.options[0].value === "") {
+                        courseSelect.options[0].textContent = t.optChooseCourse;
+                    }
+                    
+                    // Refresh pairings logic if visible to update dynamic texts
+                    if (currentGameData) {
+                        try { renderCurrentPairings(); } catch(e) { console.error("Error rendering pairings", e); }
+                    } else {
+                        // Update empty state if needed
+                        const container = document.getElementById('pairingsResults');
+                        if(container && container.querySelector('.empty-state p')) {
+                            container.querySelector('.empty-state p').textContent = t.msgSelectPlayers;
+                        }
+                    }
+                    
+                    // Reload history to update texts (like "Load/Edit" button)
+                    if (document.getElementById('historyContainer')) {
+                         try { loadGameHistory(); } catch(e) { console.error("Error loading history", e); }
+                    }
+                }
+            } catch (e) {
+                console.error("Error updating Planning tab translations", e);
+            }
+        }
+
+        // Tab switching function
+        function switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const btnId = tab === 'players' ? 'tabPlayers' : (tab === 'courses' ? 'tabCourses' : 'tabPlanning');
+            document.getElementById(btnId).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+
+            if (tab === 'planning') {
+                updatePlanningDropdown();
+                loadGameHistory();
+                // Set default date to today
+                if (!document.getElementById('planningDate').value) {
+                    document.getElementById('planningDate').valueAsDate = new Date();
+                }
+            }
+        }
+
+        // ========================================
+        // FIREBASE CONFIGURATION
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5BqbVPWCPnI6KUgHzzk1XNLL_rjNnG48",
+            authDomain: "golfapp-42180.firebaseapp.com",
+            databaseURL: "https://golfapp-42180-default-rtdb.firebaseio.com/",
+            projectId: "golfapp-42180",
+            storageBucket: "golfapp-42180.appspot.com",
+            messagingSenderId: "513230475459",
+            appId: "1:513230475459:web:a1b2c3d4e5f6g7h8i9j0"
+        };
+
+        // Initialize Firebase
+        let database;
+        let playersRef;
+        let coursesRef;
+        let gamesRef;
+        let adminRef;
+        let auth;
+        
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            auth = firebase.auth();
+            playersRef = database.ref('players');
+            coursesRef = database.ref('courses');
+            gamesRef = database.ref('games');
+            adminRef = database.ref('admin/credentials');
+            console.log('✅ Firebase connected successfully!');
+            console.log('✅ Firebase Auth object:', auth);
+            console.log('✅ Firebase Auth available:', !!auth);
+            console.log('✅ createUserWithEmailAndPassword available:', typeof auth.createUserWithEmailAndPassword);
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+            alert(translations[currentLang].alertConfigFirebase);
+        }
+
+        // Players data
+        let players = [];
+        let playerKeys = {}; // Map to store Firebase keys
+
+        // Courses data
+        let courses = [];
+        let courseKeys = {}; // Map to store Firebase keys
+
+        // DOM elements - Players
+        const playerForm = document.getElementById('playerForm');
+        const playerName = document.getElementById('playerName');
+        const averageScore = document.getElementById('averageScore');
+        const tableContainer = document.getElementById('tableContainer');
+        const formTitle = document.getElementById('formTitle');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const editIndex = document.getElementById('editIndex');
+
+        // DOM elements - Courses
+        const courseForm = document.getElementById('courseForm');
+        const courseName = document.getElementById('courseName');
+        const courseLocation = document.getElementById('courseLocation');
+        const coursePar = document.getElementById('coursePar');
+        const courseHoles = document.getElementById('courseHoles');
+        const coursesTableContainer = document.getElementById('coursesTableContainer');
+        const courseFormTitle = document.getElementById('courseFormTitle');
+        const submitCourseBtn = document.getElementById('submitCourseBtn');
+        const cancelCourseBtn = document.getElementById('cancelCourseBtn');
+        const editCourseIndex = document.getElementById('editCourseIndex');
+
+        // Check if all required elements exist
+        if (!playerForm || !courseForm) {
+            console.error('❌ Required form elements not found!');
+        } else {
+            console.log('✅ All form elements loaded successfully');
+        }
+
+        // Initialize - Load data from Firebase
+        loadPlayers();
+        loadCourses();
+        
+        // Initialize language
+        changeLanguage(currentLang);
+
+        // Form submit
+        playerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = playerName.value.trim();
+            const score = parseFloat(averageScore.value);
+            
+            if (!name || isNaN(score)) {
+                alert(translations[currentLang].alertFillFields);
+                return;
+            }
+
+            const index = editIndex.value;
+            
+            if (index !== '') {
+                // Update existing player in Firebase
+                const playerKey = playerKeys[index];
+                playersRef.child(playerKey).update({
+                    name: name,
+                    score: score
+                }).then(() => {
+                    console.log('Player updated successfully');
+                    resetForm();
+                }).catch((error) => {
+                    console.error('Error updating player:', error);
+                    alert('Failed to update player');
+                });
+            } else {
+                // Add new player to Firebase
+                playersRef.push({
+                    name: name,
+                    score: score,
+                    createdAt: Date.now()
+                }).then(() => {
+                    console.log('Player added successfully');
+                    resetForm();
+                }).catch((error) => {
+                    console.error('Error adding player:', error);
+                    alert('Failed to add player');
+                });
+            }
+        });
+
+        // Cancel edit
+        cancelBtn.addEventListener('click', resetForm);
+
+        // Load players from Firebase
+        function loadPlayers() {
+            playersRef.on('value', (snapshot) => {
+                players = [];
+                playerKeys = {};
+                
+                snapshot.forEach((childSnapshot) => {
+                    const key = childSnapshot.key;
+                    const data = childSnapshot.val();
+                    const index = players.length;
+                    
+                    players.push({
+                        name: data.name,
+                        score: data.score
+                    });
+                    playerKeys[index] = key;
+                });
+                
+                displayPlayers();
+                updateStats();
+            }, (error) => {
+                console.error('Error loading players:', error);
+                alert('Failed to load players from database');
+            });
+        }
+
+        // Save to localStorage (removed - using Firebase now)
+        function savePlayers() {
+            // No longer needed - Firebase handles saving automatically
+        }
+
+        // Display players in table
+        function displayPlayers() {
+            const t = translations[currentLang];
+            
+            if (players.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <h3>${t.noPlayers}</h3>
+                        <p>${t.noPlayersDesc}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedPlayers = [...players].sort((a, b) => a.score - b.score);
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllPlayers" onchange="toggleAllPlayers(this)" class="player-checkbox">
+                            </th>
+                            <th>${t.rank}</th>
+                            <th>${t.labelPlayerName}</th>
+                            <th>${t.labelAvgScore}</th>
+                            <th>${t.actions}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedPlayers.forEach((player, index) => {
+                const originalIndex = players.findIndex(p => p === player);
+                html += `
+                    <tr id="player-row-${originalIndex}">
+                        <td class="checkbox-cell">
+                            <input type="checkbox" class="player-checkbox player-select-cb" onchange="togglePlayerSelection(this, ${originalIndex})" value="${originalIndex}">
+                        </td>
+                        <td><strong>#${index + 1}</strong></td>
+                        <td>${player.name}</td>
+                        <td>${player.score.toFixed(1)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-edit" onclick="editPlayer(${originalIndex})">${t.btnEdit}</button>
+                                <button class="btn-delete" onclick="deletePlayer(${originalIndex})">${t.btnDelete}</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            tableContainer.innerHTML = html;
+        }
+
+        // Toggle all players selection
+        window.toggleAllPlayers = function(source) {
+            const checkboxes = document.querySelectorAll('.player-select-cb');
+            checkboxes.forEach(cb => {
+                cb.checked = source.checked;
+                const row = cb.closest('tr');
+                if (source.checked) {
+                    row.classList.add('selected-row');
+                } else {
+                    row.classList.remove('selected-row');
+                }
+            });
+            updateSelectedCount();
+        };
+
+        // Toggle single player selection
+        window.togglePlayerSelection = function(cb, index) {
+            const row = cb.closest('tr');
+            if (cb.checked) {
+                row.classList.add('selected-row');
+            } else {
+                row.classList.remove('selected-row');
+            }
+            
+            // Update "Select All" checkbox state
+            const allCheckboxes = document.querySelectorAll('.player-select-cb');
+            const allChecked = Array.from(allCheckboxes).every(c => c.checked);
+            const selectAllCb = document.getElementById('selectAllPlayers');
+            if (selectAllCb) {
+                selectAllCb.checked = allChecked;
+                selectAllCb.indeterminate = !allChecked && Array.from(allCheckboxes).some(c => c.checked);
+            }
+            updateSelectedCount();
+        };
+
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.player-select-cb:checked').length;
+            console.log(`Selected players: ${selected}`);
+            // Future usage: enable/disable global action buttons based on selection
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalPlayers').textContent = players.length;
+            
+            if (players.length > 0) {
+                const avgScore = players.reduce((sum, p) => sum + p.score, 0) / players.length;
+                document.getElementById('avgScore').textContent = avgScore.toFixed(1);
+                
+                const bestPlayer = players.reduce((best, p) => p.score < best.score ? p : best);
+                document.getElementById('bestPlayer').textContent = bestPlayer.name;
+            } else {
+                document.getElementById('avgScore').textContent = '-';
+                document.getElementById('bestPlayer').textContent = '-';
+            }
+        }
+
+        // Edit player
+        window.editPlayer = function(index) {
+            const t = translations[currentLang];
+            const player = players[index];
+            playerName.value = player.name;
+            averageScore.value = player.score;
+            editIndex.value = index;
+            formTitle.textContent = t.formTitleEdit;
+            submitBtn.textContent = t.btnUpdate;
+            cancelBtn.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Delete player
+        window.deletePlayer = function(index) {
+            const t = translations[currentLang];
+            if (confirm(`${t.confirmDelete} ${players[index].name}?`)) {
+                const playerKey = playerKeys[index];
+                playersRef.child(playerKey).remove()
+                    .then(() => {
+                        console.log('Player deleted successfully');
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting player:', error);
+                        alert('Failed to delete player');
+                    });
+            }
+        };
+
+        // Reset form
+        function resetForm() {
+            const t = translations[currentLang];
+            playerForm.reset();
+            editIndex.value = '';
+            formTitle.textContent = t.formTitleAdd;
+            submitBtn.textContent = t.btnAdd;
+            cancelBtn.style.display = 'none';
+        }
+
+        // ========================================
+        // COURSES MANAGEMENT
+        // ========================================
+
+        // Course form submit
+        courseForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = courseName.value.trim();
+            const location = courseLocation.value.trim();
+            const par = parseInt(coursePar.value);
+            const holes = parseInt(courseHoles.value);
+            
+            if (!name || !location || isNaN(par) || isNaN(holes)) {
+                alert(translations[currentLang].alertFillFields);
+                return;
+            }
+
+            const index = editCourseIndex.value;
+            
+            if (index !== '') {
+                // Update existing course in Firebase
+                const courseKey = courseKeys[index];
+                coursesRef.child(courseKey).update({
+                    name: name,
+                    location: location,
+                    par: par,
+                    holes: holes
+                }).then(() => {
+                    console.log('Course updated successfully');
+                    resetCourseForm();
+                }).catch((error) => {
+                    console.error('Error updating course:', error);
+                    alert('Failed to update course');
+                });
+            } else {
+                // Add new course to Firebase
+                coursesRef.push({
+                    name: name,
+                    location: location,
+                    par: par,
+                    holes: holes,
+                    createdAt: Date.now()
+                }).then(() => {
+                    console.log('Course added successfully');
+                    resetCourseForm();
+                }).catch((error) => {
+                    console.error('Error adding course:', error);
+                    alert('Failed to add course');
+                });
+            }
+        });
+
+        // Cancel course edit
+        cancelCourseBtn.addEventListener('click', resetCourseForm);
+
+        // Load courses from Firebase
+        function loadCourses() {
+            coursesRef.on('value', (snapshot) => {
+                courses = [];
+                courseKeys = {};
+                
+                snapshot.forEach((childSnapshot) => {
+                    const key = childSnapshot.key;
+                    const data = childSnapshot.val();
+                    const index = courses.length;
+                    
+                    courses.push({
+                        name: data.name,
+                        location: data.location,
+                        par: data.par,
+                        holes: data.holes
+                    });
+                    courseKeys[index] = key;
+                });
+                
+                displayCourses();
+                updateCourseStats();
+            }, (error) => {
+                console.error('Error loading courses:', error);
+                alert('Failed to load courses from database');
+            });
+        }
+
+        // Display courses in table
+        function displayCourses() {
+            const t = translations[currentLang];
+            
+            if (courses.length === 0) {
+                coursesTableContainer.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3>${t.labelNoCourses}</h3>
+                        <p>${t.labelNoCoursesDesc}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>${t.labelCourseName}</th>
+                            <th>${t.location}</th>
+                            <th>${t.labelCoursePar}</th>
+                            <th>${t.labelCourseHoles}</th>
+                            <th>${t.actions}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            courses.forEach((course, index) => {
+                html += `
+                    <tr>
+                        <td><strong>${course.name}</strong></td>
+                        <td>${course.location}</td>
+                        <td>${course.par}</td>
+                        <td>${course.holes}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-edit" onclick="editCourse(${index})">${t.btnEdit}</button>
+                                <button class="btn-delete" onclick="deleteCourse(${index})">${t.btnDelete}</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            coursesTableContainer.innerHTML = html;
+        }
+
+        // Update course statistics
+        function updateCourseStats() {
+            document.getElementById('totalCourses').textContent = courses.length;
+            
+            if (courses.length > 0) {
+                const avgPar = courses.reduce((sum, c) => sum + c.par, 0) / courses.length;
+                document.getElementById('avgPar').textContent = avgPar.toFixed(0);
+                
+                const totalHoles = courses.reduce((sum, c) => sum + c.holes, 0);
+                document.getElementById('totalHoles').textContent = totalHoles;
+            } else {
+                document.getElementById('avgPar').textContent = '-';
+                document.getElementById('totalHoles').textContent = '-';
+            }
+        }
+
+        // Edit course
+        window.editCourse = function(index) {
+            const t = translations[currentLang];
+            const course = courses[index];
+            courseName.value = course.name;
+            courseLocation.value = course.location;
+            coursePar.value = course.par;
+            courseHoles.value = course.holes;
+            editCourseIndex.value = index;
+            courseFormTitle.textContent = t.courseFormTitleEdit;
+            submitCourseBtn.textContent = t.btnUpdateCourse;
+            cancelCourseBtn.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Delete course
+        window.deleteCourse = function(index) {
+            const t = translations[currentLang];
+            if (confirm(`${t.confirmDelete} ${courses[index].name}?`)) {
+                const courseKey = courseKeys[index];
+                coursesRef.child(courseKey).remove()
+                    .then(() => {
+                        console.log('Course deleted successfully');
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting course:', error);
+                        alert('Failed to delete course');
+                    });
+            }
+        };
+
+        // Reset course form
+        function resetCourseForm() {
+            const t = translations[currentLang];
+            courseForm.reset();
+            editCourseIndex.value = '';
+            courseFormTitle.textContent = t.courseFormTitleAdd;
+            submitCourseBtn.textContent = t.btnAddCourse;
+            cancelCourseBtn.style.display = 'none';
+        }
+
+        // ========================================
+        // GOLF COURSE API INTEGRATION
+        // ========================================
+        
+        // GolfCourseAPI from RapidAPI
+        const RAPIDAPI_KEY = 'HAWPXVKNOI6TXTXXNFS4APWCRU';
+        const RAPIDAPI_HOST = 'golf-course-api.p.rapidapi.com';
+
+        // Search golf courses from API
+        window.searchGolfCourses = async function() {
+            const t = translations[currentLang];
+            const searchTerm = document.getElementById('apiSearchInput').value.trim();
+            const resultsContainer = document.getElementById('apiSearchResults');
+            
+            if (!searchTerm) {
+                alert(t.alertFillFields);
+                return;
+            }
+
+            // Show loading
+            resultsContainer.innerHTML = `<div class="loading">${t.searching}</div>`;
+            resultsContainer.classList.add('show');
+
+            // Try multiple possible endpoints
+            const endpoints = [
+                `https://${RAPIDAPI_HOST}/courses?name=${encodeURIComponent(searchTerm)}`,
+                `https://${RAPIDAPI_HOST}/search?q=${encodeURIComponent(searchTerm)}`
+            ];
+
+            let apiSuccess = false;
+            let lastError = '';
+
+            for (let i = 0; i < endpoints.length; i++) {
+                try {
+                    console.log(`Trying endpoint ${i + 1}:`, endpoints[i]);
+                    
+                    const response = await fetch(endpoints[i], {
+                        method: 'GET',
+                        headers: {
+                            'X-RapidAPI-Key': RAPIDAPI_KEY,
+                            'X-RapidAPI-Host': RAPIDAPI_HOST
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('API Success! Data:', data);
+                        
+                        let courses = [];
+                        if (Array.isArray(data)) {
+                            courses = data;
+                        } else if (data.courses) {
+                            courses = data.courses;
+                        } else if (data.data) {
+                            courses = data.data;
+                        } else if (data.results) {
+                            courses = data.results;
+                        }
+                        
+                        if (courses.length > 0) {
+                            displayApiResults(courses);
+                            apiSuccess = true;
+                            return;
+                        }
+                    } else {
+                        lastError = `Status: ${response.status} (${response.statusText})`;
+                        if (response.status === 429) lastError = translations[currentLang].alertQuotaExceeded;
+                        if (response.status === 401 || response.status === 403) lastError = translations[currentLang].alertInvalidKey;
+                        console.log(`Endpoint ${i + 1} failed:`, response.status);
+                    }
+                } catch (error) {
+                    console.error(`Endpoint ${i + 1} error:`, error);
+                    lastError = error.message;
+                }
+            }
+            
+            // All endpoints failed
+            if (!apiSuccess) {
+                console.log('All API endpoints failed. Using sample data.');
+                const t = translations[currentLang];
+                const errorMsg = `<strong>${t.msgApiConnectionError}</strong><br>${lastError ? `Error: ${lastError}<br>` : ''}${t.msgShowingDatabase}`;
+                showSampleCourses(searchTerm, errorMsg);
+            }
+        };
+
+        // Show sample courses if API fails
+        function showSampleCourses(searchTerm, customErrorMsg = null) {
+            const t = translations[currentLang];
+            const sampleCourses = [
+                // West Palm Beach Area
+                { name: 'PGA National Resort - Champion Course', city: 'Palm Beach Gardens', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7140, rating: 75.3, slope: 142, designer: 'Jack Nicklaus', type: 'Resort', year: 1981 },
+                { name: 'Trump International Golf Club', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7279, rating: 76.4, slope: 155, designer: 'Jim Fazio', type: 'Private', year: 1999 },
+                { name: "The Bear's Club", city: 'Jupiter', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7271, rating: 76.3, slope: 145, designer: 'Jack Nicklaus', type: 'Private', year: 2000 },
+                { name: 'Seminole Golf Club', city: 'Juno Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6838, rating: 74.5, slope: 136, designer: 'Donald Ross', type: 'Private', year: 1929 },
+                { name: 'Old Palm Golf Club', city: 'Palm Beach Gardens', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7203, rating: 75.9, slope: 149, designer: 'Raymond Floyd', type: 'Private', year: 1997 },
+                { name: "Frenchman's Creek Beach & Country Club", city: 'Palm Beach Gardens', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6741, rating: 73.1, slope: 132, designer: 'Desmond Muirhead', type: 'Private', year: 1970 },
+                { name: 'BallenIsles Country Club - North Course', city: 'Palm Beach Gardens', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6826, rating: 73.4, slope: 134, designer: 'Bobby Weed', type: 'Private', year: 1987 },
+                { name: 'Mirasol Country Club - Sunrise Course', city: 'Palm Beach Gardens', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7055, rating: 74.2, slope: 138, designer: 'Tom Fazio', type: 'Private', year: 1999 },
+                { name: 'Ibis Golf & Country Club - Legend Course', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7207, rating: 75.4, slope: 144, designer: 'Jack Nicklaus', type: 'Private', year: 1991 },
+                { name: 'Breakers West Country Club', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6900, rating: 73.8, slope: 135, designer: 'Willard Byrd', type: 'Private', year: 1971 },
+                { name: 'Palm Beach Par 3 Golf Course', city: 'Palm Beach', state: 'Florida', country: 'USA', par: 58, holes: 18, yards: 2458, rating: 58.5, slope: 95, designer: 'Dick Wilson', type: 'Public', year: 1961 },
+                { name: 'West Palm Beach Country Club', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 70, holes: 18, yards: 6432, rating: 71.2, slope: 126, designer: 'Unknown', type: 'Private', year: 1947 },
+                { name: 'Everglades Golf Club', city: 'Palm Beach Gardens', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6636, rating: 72.4, slope: 130, designer: 'Robert von Hagge', type: 'Private', year: 1972 },
+                { name: 'Lost Tree Club', city: 'North Palm Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6734, rating: 73.0, slope: 133, designer: 'Dick Wilson', type: 'Private', year: 1961 },
+                { name: 'Madison Green Country Club', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6875, rating: 73.2, slope: 132, designer: 'Gordon Lewis', type: 'Private', year: 1989 },
+                
+                // Jupiter/Tequesta Area
+                { name: 'Jupiter Hills Club - Hills Course', city: 'Tequesta', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7043, rating: 74.5, slope: 142, designer: 'George Fazio & Tom Fazio', type: 'Private', year: 1970 },
+                { name: 'Admirals Cove', city: 'Jupiter', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7007, rating: 74.1, slope: 138, designer: 'Robert von Hagge', type: 'Private', year: 1988 },
+                { name: "Jonathan's Landing Golf Club", city: 'Jupiter', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6945, rating: 73.7, slope: 135, designer: 'Joe Lee', type: 'Private', year: 1989 },
+                { name: 'Abacoa Golf Club', city: 'Jupiter', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7159, rating: 74.8, slope: 137, designer: 'Joe Lee', type: 'Semi-Private', year: 1999 },
+                { name: 'Jupiter Country Club', city: 'Jupiter', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6586, rating: 71.8, slope: 128, designer: 'Charles Ankrom', type: 'Private', year: 1981 },
+                
+                // Boca Raton Area
+                { name: 'The Club at Boca Pointe', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6724, rating: 72.4, slope: 131, designer: 'Dave Wallace', type: 'Private', year: 1984 },
+                { name: 'Boca West Country Club - Boca Dunes', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7031, rating: 73.9, slope: 135, designer: 'Pete Dye', type: 'Private', year: 1984 },
+                { name: 'St. Andrews Country Club - North Course', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6882, rating: 73.1, slope: 132, designer: 'Gordon Lewis', type: 'Private', year: 1988 },
+                { name: 'Woodfield Country Club', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7006, rating: 74.0, slope: 136, designer: 'Joe Lee', type: 'Private', year: 1980 },
+                { name: 'Mizner Country Club', city: 'Delray Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6850, rating: 73.2, slope: 133, designer: 'Gordon Lewis', type: 'Private', year: 1989 },
+                { name: 'Broken Sound Club - Old Course', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6837, rating: 73.4, slope: 137, designer: 'Joe Lee', type: 'Private', year: 1980 },
+                { name: 'Addison Reserve Country Club', city: 'Delray Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7000, rating: 74.2, slope: 140, designer: 'Arthur Hills', type: 'Private', year: 2000 },
+                { name: 'The Polo Club of Boca Raton', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7117, rating: 74.6, slope: 139, designer: 'Pete Dye & P.B. Dye', type: 'Private', year: 1984 },
+                { name: 'Boca Grove Golf & Tennis Club', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7001, rating: 74.1, slope: 136, designer: 'Chip Powell', type: 'Private', year: 2000 },
+                { name: 'Boca Rio Golf Club', city: 'Boca Raton', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6250, rating: 69.8, slope: 118, designer: 'Bruce Devlin', type: 'Semi-Private', year: 1967 },
+                
+                // Delray Beach Area
+                { name: 'Delray Beach Golf Club', city: 'Delray Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6907, rating: 73.4, slope: 131, designer: 'Donald Ross', type: 'Public', year: 1923 },
+                { name: 'Atlantic National Golf Club', city: 'Lake Worth', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6619, rating: 71.8, slope: 127, designer: 'Joe Lee', type: 'Public', year: 1999 },
+                { name: 'Seagate Country Club', city: 'Delray Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6780, rating: 72.8, slope: 129, designer: 'Bruce Devlin', type: 'Private', year: 1973 },
+                { name: 'The Bridges at Springtree', city: 'Sunrise', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6906, rating: 73.2, slope: 134, designer: 'Lloyd Clifton', type: 'Semi-Private', year: 2001 },
+                { name: 'Pine Tree Golf Club', city: 'Boynton Beach', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 7065, rating: 74.7, slope: 144, designer: 'Dick Wilson', type: 'Private', year: 1962 },
+                
+                // Fort Lauderdale Area
+                { name: 'The Club at Emerald Hills', city: 'Hollywood', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7035, rating: 74.3, slope: 139, designer: 'Bruce Devlin & Robert von Hagge', type: 'Private', year: 1962 },
+                { name: 'Fort Lauderdale Country Club', city: 'Fort Lauderdale', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6513, rating: 71.2, slope: 125, designer: 'William Mitchell', type: 'Private', year: 1956 },
+                { name: 'Jacaranda Golf Club - East Course', city: 'Plantation', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7239, rating: 75.6, slope: 141, designer: 'Mark Mahannah', type: 'Public', year: 1972 },
+                { name: 'Woodmont Country Club', city: 'Tamarac', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6750, rating: 72.5, slope: 130, designer: 'Bruce Devlin', type: 'Private', year: 1973 },
+                { name: 'Colony West Country Club', city: 'Tamarac', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6758, rating: 72.9, slope: 131, designer: 'Bruce Devlin', type: 'Public', year: 1970 },
+                { name: 'Coral Ridge Country Club', city: 'Fort Lauderdale', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6671, rating: 72.3, slope: 129, designer: 'Robert von Hagge', type: 'Private', year: 1957 },
+                { name: 'Plantation Golf Course', city: 'Fort Lauderdale', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6709, rating: 72.1, slope: 124, designer: 'Ron Garl', type: 'Public', year: 1971 },
+                { name: 'Rolling Hills Golf Resort', city: 'Fort Lauderdale', state: 'Florida', country: 'USA', par: 60, holes: 18, yards: 3085, rating: 58.2, slope: 91, designer: 'Red Lawrence', type: 'Public', year: 1958 },
+                { name: 'Inverrary Country Club - East Course', city: 'Lauderhill', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7127, rating: 74.5, slope: 138, designer: 'Robert Trent Jones Sr.', type: 'Private', year: 1972 },
+                { name: 'TPC Eagle Trace', city: 'Coral Springs', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7030, rating: 74.0, slope: 137, designer: 'Arthur Hills', type: 'Public', year: 1984 },
+                
+                // Pompano Beach/Deerfield Area
+                { name: 'Palm-Aire Country Club - Cypress Course', city: 'Pompano Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6957, rating: 73.5, slope: 132, designer: 'Bill Watts', type: 'Semi-Private', year: 1970 },
+                { name: 'Crystal Lake Country Club', city: 'Pompano Beach', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6584, rating: 71.5, slope: 126, designer: 'Bruce Devlin', type: 'Semi-Private', year: 1969 },
+                { name: 'Deer Creek Golf Club - South Course', city: 'Deerfield Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6835, rating: 72.9, slope: 133, designer: 'Arthur Hills', type: 'Public', year: 1989 },
+                { name: 'Hillsboro Pines Golf Course', city: 'Deerfield Beach', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6405, rating: 70.4, slope: 119, designer: 'Charles Ankrom', type: 'Public', year: 1969 },
+                
+                // Weston/Pembroke Pines Area
+                { name: 'Bonaventure Country Club - East Course', city: 'Weston', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7011, rating: 73.8, slope: 136, designer: 'Joe Lee', type: 'Private', year: 1971 },
+                { name: 'Weston Hills Country Club', city: 'Weston', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6920, rating: 73.4, slope: 134, designer: 'Robert Trent Jones Jr.', type: 'Private', year: 1987 },
+                { name: 'Pembroke Lakes Golf & Racquet Club', city: 'Pembroke Pines', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6475, rating: 70.9, slope: 123, designer: 'Charles Ankrom', type: 'Public', year: 1974 },
+                { name: 'Grand Palms Golf & Country Club', city: 'Pembroke Pines', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6929, rating: 73.2, slope: 132, designer: 'Ward Northrup', type: 'Semi-Private', year: 1986 },
+                { name: 'Flamingo Lakes Country Club', city: 'Pembroke Pines', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6512, rating: 71.1, slope: 124, designer: 'Arthur Hills', type: 'Private', year: 1980 },
+                
+                // Miami/Miami Beach/Doral Area
+                { name: 'Trump National Doral - Blue Monster', city: 'Doral', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7590, rating: 77.6, slope: 150, designer: 'Dick Wilson/Gil Hanse', type: 'Resort', year: 1962 },
+                { name: 'Miami Beach Golf Club', city: 'Miami Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6958, rating: 73.4, slope: 128, designer: 'Arthur Hills', type: 'Public', year: 1923 },
+                { name: 'Crandon Golf at Key Biscayne', city: 'Key Biscayne', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7301, rating: 75.8, slope: 142, designer: 'Robert von Hagge & Bruce Devlin', type: 'Public', year: 1972 },
+                { name: 'Melreese Country Club', city: 'Miami', state: 'Florida', country: 'USA', par: 70, holes: 18, yards: 6407, rating: 70.6, slope: 119, designer: 'Unknown', type: 'Public', year: 1962 },
+                { name: 'Biltmore Golf Course', city: 'Coral Gables', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6755, rating: 72.7, slope: 129, designer: 'Donald Ross', type: 'Public', year: 1925 },
+                { name: 'Doral Park Golf & Country Club', city: 'Doral', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6859, rating: 72.8, slope: 130, designer: 'Mark Mahannah', type: 'Semi-Private', year: 1988 },
+                { name: 'Costa del Sol Golf Club', city: 'Doral', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7055, rating: 73.9, slope: 133, designer: 'Bruce Devlin', type: 'Semi-Private', year: 1980 },
+                { name: "Shula's Golf Club", city: 'Miami Lakes', state: 'Florida', country: 'USA', par: 70, holes: 18, yards: 7055, rating: 74.2, slope: 134, designer: 'Arthur Hills', type: 'Semi-Private', year: 1962 },
+                { name: 'Miami Shores Country Club', city: 'Miami Shores', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6491, rating: 71.0, slope: 122, designer: 'Desmond Muirhead', type: 'Private', year: 1939 },
+                { name: 'Palmetto Golf Course', city: 'Miami', state: 'Florida', country: 'USA', par: 70, holes: 18, yards: 7045, rating: 74.2, slope: 132, designer: 'Dick Wilson', type: 'Public', year: 1959 },
+                
+                // Coral Gables/Kendall/Miami Lakes Area
+                { name: 'Riviera Country Club', city: 'Coral Gables', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6690, rating: 72.1, slope: 128, designer: 'Unknown', type: 'Private', year: 1946 },
+                { name: "Don Shula's Hotel & Golf Club", city: 'Miami Lakes', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6941, rating: 73.3, slope: 131, designer: 'Bill Watts', type: 'Resort', year: 1962 },
+                { name: 'Killian Greens Golf Course', city: 'Miami', state: 'Florida', country: 'USA', par: 70, holes: 18, yards: 6228, rating: 69.2, slope: 114, designer: 'Unknown', type: 'Public', year: 1965 },
+                { name: 'Calusa Country Club', city: 'Kendall', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6550, rating: 71.3, slope: 124, designer: 'Mark Mahannah', type: 'Private', year: 1968 },
+                { name: 'Westview Golf Course', city: 'Miami', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6330, rating: 69.8, slope: 116, designer: 'Unknown', type: 'Public', year: 1962 },
+                
+                // Homestead/South Miami Area
+                { name: 'Redland Golf & Country Club', city: 'Homestead', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7012, rating: 73.8, slope: 131, designer: 'Dave Postlewait', type: 'Semi-Private', year: 2000 },
+                { name: 'Keys Gate Golf Club', city: 'Homestead', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6649, rating: 71.9, slope: 126, designer: 'Joe Lee', type: 'Semi-Private', year: 1994 },
+                { name: 'Fontainebleau Golf Course', city: 'Miami', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6615, rating: 71.5, slope: 123, designer: 'Mark Mahannah', type: 'Public', year: 1968 },
+                
+                // Additional Palm Beach County Courses
+                { name: 'Banyan Cay Resort & Golf', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 61, holes: 18, yards: 4111, rating: 62.3, slope: 103, designer: 'Unknown', type: 'Resort', year: 1974 },
+                { name: 'Wellington Country Club', city: 'Wellington', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6805, rating: 72.6, slope: 129, designer: 'Joe Lee', type: 'Private', year: 1989 },
+                { name: 'Palm Beach National Golf & Country Club', city: 'Lake Worth', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6731, rating: 72.3, slope: 127, designer: 'Joe Lee', type: 'Semi-Private', year: 1999 },
+                { name: 'Winston Trails Golf Club', city: 'Lake Worth', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6835, rating: 72.8, slope: 131, designer: 'Joe Lee', type: 'Semi-Private', year: 1993 },
+                { name: 'Indian Spring Country Club', city: 'Boynton Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6890, rating: 73.1, slope: 132, designer: 'Arthur Hills', type: 'Private', year: 1973 },
+                { name: 'Aberdeen Golf & Country Club', city: 'Boynton Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6740, rating: 72.4, slope: 128, designer: 'Joe Lee', type: 'Private', year: 1989 },
+                { name: 'Canyon Isles Golf Club', city: 'Boynton Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6615, rating: 71.5, slope: 125, designer: 'Gordon Lewis', type: 'Semi-Private', year: 1988 },
+                { name: 'Cypress Lakes Golf Club', city: 'Lake Worth', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6505, rating: 70.8, slope: 122, designer: 'Gordon Lewis', type: 'Semi-Private', year: 1989 },
+                { name: 'Village Golf Club', city: 'Wellington', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6955, rating: 73.6, slope: 133, designer: 'Joe Lee', type: 'Private', year: 1987 },
+                { name: 'West Palm Beach Municipal Golf Course', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6219, rating: 69.4, slope: 117, designer: 'Unknown', type: 'Public', year: 1947 },
+                
+                // Additional Broward County Courses
+                { name: 'Sunrise Country Club', city: 'Sunrise', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6840, rating: 72.9, slope: 130, designer: 'Bruce Devlin', type: 'Public', year: 1974 },
+                { name: 'Orangebrook Golf & Country Club', city: 'Hollywood', state: 'Florida', country: 'USA', par: 70, holes: 18, yards: 6210, rating: 69.1, slope: 115, designer: 'Unknown', type: 'Public', year: 1937 },
+                { name: 'Arrowhead Golf Club', city: 'Davie', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6741, rating: 72.4, slope: 129, designer: 'Robert von Hagge', type: 'Public', year: 1992 },
+                { name: 'Davie Golf & Country Club', city: 'Davie', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6556, rating: 71.4, slope: 124, designer: 'Lloyd Clifton', type: 'Semi-Private', year: 1963 },
+                { name: 'Plantation Preserve Golf Course', city: 'Plantation', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6815, rating: 72.6, slope: 128, designer: 'Arthur Hills', type: 'Public', year: 1990 },
+                { name: 'Eagle Trace Golf Club', city: 'Coral Springs', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6404, rating: 70.5, slope: 120, designer: 'Unknown', type: 'Public', year: 1986 },
+                { name: 'Heron Bay Golf Club', city: 'Coral Springs', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 7202, rating: 75.1, slope: 141, designer: 'Robert Trent Jones Jr.', type: 'Private', year: 2001 },
+                { name: 'Wycliffe Golf & Country Club', city: 'Wellington', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6949, rating: 73.5, slope: 134, designer: 'Karl Litten', type: 'Private', year: 1980 },
+                { name: 'Westchester Golf & Country Club', city: 'Boynton Beach', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6670, rating: 71.9, slope: 127, designer: 'Joe Lee', type: 'Private', year: 1988 },
+                { name: 'Glades Golf & Country Club', city: 'Lake Worth', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6515, rating: 70.9, slope: 122, designer: 'Unknown', type: 'Private', year: 1975 },
+                
+                // Additional Miami-Dade Courses
+                { name: 'Miami Lakes Golf Club', city: 'Miami Lakes', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6960, rating: 73.5, slope: 131, designer: 'Arthur Hills', type: 'Private', year: 1962 },
+                { name: 'Country Club of Miami', city: 'Miami', state: 'Florida', country: 'USA', par: 72, holes: 18, yards: 6897, rating: 73.2, slope: 130, designer: 'Robert Trent Jones Sr.', type: 'Private', year: 1961 },
+                { name: 'Normandy Shores Golf Club', city: 'Miami Beach', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6410, rating: 70.5, slope: 120, designer: 'William Langford', type: 'Public', year: 1940 },
+                { name: 'Palm Aire Country Club - Oaks Course', city: 'Pompano Beach', state: 'Florida', country: 'USA', par: 71, holes: 18, yards: 6910, rating: 73.1, slope: 128, designer: 'George Fazio & Tom Fazio', type: 'Semi-Private', year: 1971 },
+                { name: 'Foxfire Golf Club', city: 'West Palm Beach', state: 'Florida', country: 'USA', par: 61, holes: 18, yards: 4264, rating: 62.8, slope: 105, designer: 'Ron Garl', type: 'Semi-Private', year: 1989 }
+            ];
+            
+            const searchLower = searchTerm.toLowerCase();
+            const filtered = sampleCourses.filter(c => 
+                c.name.toLowerCase().includes(searchLower) ||
+                c.city.toLowerCase().includes(searchLower) ||
+                c.state.toLowerCase().includes(searchLower) ||
+                c.country.toLowerCase().includes(searchLower)
+            );
+            
+            const msg = customErrorMsg || t.msgApiUnavailable;
+
+            if (filtered.length > 0) {
+                displayApiResults(filtered);
+            } else {
+                displayApiResults(sampleCourses);
+            }
+            
+            const resultsContainer = document.getElementById('apiSearchResults');
+            resultsContainer.innerHTML = `<div class="loading" style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 10px;">${msg}</div>` + resultsContainer.innerHTML;
+        }
+
+        // Display API search results
+        function displayApiResults(courses) {
+            const t = translations[currentLang];
+            const resultsContainer = document.getElementById('apiSearchResults');
+
+            if (!courses || courses.length === 0) {
+                resultsContainer.innerHTML = `<div class="loading">${t.noResults}</div>`;
+                return;
+            }
+
+            let html = '';
+            courses.forEach((course, index) => {
+                // Build location string from available data
+                const locationParts = [];
+                if (course.city) locationParts.push(course.city);
+                if (course.state_province) locationParts.push(course.state_province);
+                if (course.state) locationParts.push(course.state);
+                if (course.country) locationParts.push(course.country);
+                const location = locationParts.join(', ') || t.msgLocationUnknown;
+                
+                // Get detailed data
+                const holes = course.holes || course.hole_count || 18;
+                const par = course.par || 72;
+                const yards = course.yards || course.yardage || null;
+                const designer = course.designer || null;
+                const type = course.type || null;
+                const rating = course.rating || course.course_rating || null;
+                const slope = course.slope || course.slope_rating || null;
+
+                html += `
+                    <div class="course-result">
+                        <div class="course-info">
+                            <h4>${course.name || t.msgUnknownCourse}</h4>
+                            <p>📍 ${location}</p>
+                            <p>⛳ Par: ${par} | ${holes} ${t.holes}${yards ? ` | ${yards} ${t.unitYards}` : ''}</p>
+                            ${rating && slope ? `<p>📊 ${t.labelRating}: ${rating} | ${t.labelSlope}: ${slope}</p>` : ''}
+                            ${designer ? `<p>🏗️ ${t.labelDesigner}: ${designer}${course.year ? ` (${course.year})` : ''}</p>` : ''}
+                            ${type ? `<p>🏛️ ${t.labelType}: ${type}</p>` : ''}
+                        </div>
+                        <button class="btn-add-course" onclick="addCourseFromApi(${index})">
+                            ${t.btnAddToCourses}
+                        </button>
+                    </div>
+                `;
+            });
+
+            resultsContainer.innerHTML = html;
+            
+            // Store courses temporarily for adding
+            window.apiCoursesCache = courses;
+        }
+
+        // Add course from API to Firebase
+        window.addCourseFromApi = function(index) {
+            const course = window.apiCoursesCache[index];
+            
+            // Build location string
+            const locationParts = [];
+            if (course.city) locationParts.push(course.city);
+            if (course.state_province) locationParts.push(course.state_province);
+            if (course.state) locationParts.push(course.state);
+            if (course.country) locationParts.push(course.country);
+            const location = locationParts.join(', ') || 'Location not specified';
+            
+            const holes = course.holes || course.hole_count || 18;
+            const par = course.par || 72;
+            const yards = course.yards || course.yardage || null;
+            const rating = course.rating || course.course_rating || null;
+            const slope = course.slope || course.slope_rating || null;
+            const designer = course.designer || null;
+            const type = course.type || null;
+            const year = course.year || null;
+
+            // Add to Firebase with all available data
+            const courseData = {
+                name: course.name || 'Unknown Course',
+                location: location,
+                par: par,
+                holes: holes,
+                createdAt: Date.now()
+            };
+            
+            // Add optional fields if available
+            if (yards) courseData.yards = yards;
+            if (rating) courseData.rating = rating;
+            if (slope) courseData.slope = slope;
+            if (designer) courseData.designer = designer;
+            if (type) courseData.type = type;
+            if (year) courseData.year = year;
+
+            coursesRef.push(courseData).then(() => {
+                const t = translations[currentLang];
+                console.log('Course added successfully from API with detailed data');
+                alert(`✅ ${course.name} ${t.alertCourseAdded}`);
+            }).catch((error) => {
+                const t = translations[currentLang];
+                console.error('Error adding course:', error);
+                alert(t.alertAddCourseFailed);
+            });
+        };
+
+        // Add enter key support for search
+        document.getElementById('apiSearchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchGolfCourses();
+            }
+        });
+
+        // ========================================
+        // PLANNING LOGIC
+        // ========================================
+        
+        function updatePlanningDropdown() {
+            const t = translations[currentLang];
+            const select = document.getElementById('planningCourseSelect');
+            const currentVal = select.value;
+            
+            // Keep first option
+            select.innerHTML = `<option value="">${t.optChooseCourse}</option>`;
+            
+            courses.forEach(course => {
+                const opt = document.createElement('option');
+                opt.value = course.name;
+                opt.textContent = `${course.name} (${course.location})`;
+                if (course.name === currentVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        window.generatePairings = function() {
+            const t = translations[currentLang];
+            // Get selected players
+            const selectedCheckboxes = document.querySelectorAll('.player-select-cb:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert(t.alertSelectPlayers);
+                switchTab('players');
+                return;
+            }
+
+            const selectedIndices = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+            const selectedPlayers = selectedIndices.map(idx => players[idx]);
+            
+            // Get strategy & Time
+            const strategy = document.querySelector('input[name="groupingStrategy"]:checked').value;
+            const courseName = document.getElementById('planningCourseSelect').value;
+            const startTimeInput = document.getElementById('planningStartTime').value;
+            const intervalInput = parseInt(document.getElementById('planningTimeInterval').value) || 10;
+            const gameDate = document.getElementById('planningDate').value;
+            
+            if (!courseName) {
+                alert(t.alertSelectCourse);
+                return;
+            }
+
+            if (!gameDate) {
+                alert(t.alertSelectDate);
+                return;
+            }
+
+            if (!startTimeInput) {
+                alert(t.alertSelectTime);
+                return;
+            }
+
+            let pairings = [];
+            
+            if (strategy === 'random') {
+                // Shuffle logic
+                pairings = [...selectedPlayers].sort(() => Math.random() - 0.5);
+            } else {
+                // Sort by score (best average first)
+                pairings = [...selectedPlayers].sort((a, b) => a.score - b.score);
+            }
+
+            // Group into foursomes
+            const groups = [];
+            for (let i = 0; i < pairings.length; i += 4) {
+                groups.push(pairings.slice(i, i + 4).map(p => ({name: p.name, score: p.score})));
+            }
+            
+            // Prepare data for rendering & saving
+            currentGameData = {
+                date: gameDate,
+                course: courseName,
+                startTime: startTimeInput,
+                interval: intervalInput,
+                strategy: strategy,
+                groups: groups,
+                createdAt: Date.now()
+            };
+
+            renderCurrentPairings();
+        };
+
+        // --- SHARING FUNCTIONS ---
+        window.printGroups = function() {
+            window.print();
+        };
+
+        window.formatGroupsForText = function() {
+            if (!currentGameData) return '';
+            const t = translations[currentLang];
+            const { groups, course, startTime, interval } = currentGameData;
+            
+            let text = `⛳ ${course}\n📅 ${currentGameData.date}\n\n`;
+            
+            groups.forEach((group, i) => {
+                let teeTimeDisplay = '';
+                if (startTime) {
+                    const [hours, minutes] = startTime.split(':').map(Number);
+                    const totalMinutes = (hours * 60) + minutes + (i * (parseInt(interval) || 10));
+                    const h = Math.floor(totalMinutes / 60);
+                    const m = totalMinutes % 60;
+                    teeTimeDisplay = ` - ⏰ ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                }
+                
+                text += `🚩 ${t.labelGroup} #${i + 1}${teeTimeDisplay}\n`;
+                group.forEach(p => {
+                    text += `   • ${p.name} (${p.score})\n`;
+                });
+                text += '\n';
+            });
+            
+            return text;
+        };
+
+        window.shareGroups = function() {
+            const text = formatGroupsForText();
+            const t = translations[currentLang];
+            
+            // Try Native Share API first (mobile)
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Golf Pairings',
+                    text: text
+                }).catch(err => {
+                    copyToClipboard(text);
+                });
+            } else {
+                copyToClipboard(text);
+            }
+        };
+
+        window.copyToClipboard = function(text) {
+             const t = translations[currentLang];
+             if (navigator.clipboard && window.isSecureContext) {
+                 navigator.clipboard.writeText(text).then(() => {
+                     alert(t.msgCopied);
+                 }).catch(err => {
+                     console.error('Failed to copy: ', err);
+                     fallbackCopyTextToClipboard(text);
+                 });
+             } else {
+                 fallbackCopyTextToClipboard(text);
+             }
+        };
+
+        window.fallbackCopyTextToClipboard = function(text) {
+            const t = translations[currentLang];
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    alert(t.msgCopied);
+                } else {
+                    alert(t.msgShareError);
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                alert(t.msgShareError);
+            }
+            
+            document.body.removeChild(textArea);
+        };
+
+        window.emailGroups = function() {
+            const text = formatGroupsForText();
+            const subject = encodeURIComponent(`Golf Pairings - ${currentGameData.course}`);
+            const body = encodeURIComponent(text);
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        };
+        // -------------------------
+
+        window.renderCurrentPairings = function() {
+            const container = document.getElementById('pairingsResults');
+            const t = translations[currentLang];
+
+            if (!currentGameData) {
+                if(container) {
+                     container.innerHTML = `
+                        <div class="empty-state">
+                            <p id="msgSelectPlayers">${t.msgSelectPlayers}</p>
+                        </div>
+                     `;
+                }
+                return;
+            }
+            
+            const { groups, course, strategy, startTime, interval } = currentGameData;
+            
+            // Calculate available players (in DB but not in current game groups)
+            const playersInGame = new Set();
+            groups.forEach(g => g.forEach(p => playersInGame.add(p.name)));
+            
+            const availablePlayers = players.filter(p => !playersInGame.has(p.name));
+            
+            let html = `
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 2; min-width: 300px;">
+                        <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                            <h3 style="margin-bottom: 10px; color: #2196F3;">⛳ ${t.labelGameAt} ${course}</h3>
+                            
+                            <!-- ACTIONS BAR -->
+                            <div class="no-print" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button onclick="printGroups()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.9em; background: #607d8b;">🖨️ ${t.btnPrint}</button>
+                                <button onclick="shareGroups()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.9em; background: #607d8b;">🔗 ${t.btnShare}</button>
+                                <button onclick="emailGroups()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.9em; background: #607d8b;">✉️ ${t.btnEmail}</button>
+                                <button onclick="addNewFoursome()" class="btn btn-primary" style="padding: 8px 12px; font-size: 0.9em; background: #4CAF50;">➕ ${t.btnAddFoursome || 'Ajouter un Foursome'}</button>
+                            </div>
+
+                            <p style="margin-bottom: 10px; color: #666;">${t.labelStrategy}: ${strategy === 'random' ? t.optMixMatch : t.optBestAvg}</p>
+                            <p style="margin-bottom: 20px; background: #fff3e0; color: #e65100; padding: 10px; border-radius: 5px; font-size: 0.9em; border: 1px solid #ffe0b2;">
+                                ${t.msgSwapInstruction}
+                            </p>
+            `;
+
+            groups.forEach((group, gIdx) => {
+                const groupAvg = group.length > 0 ? (group.reduce((sum, p) => sum + p.score, 0) / group.length).toFixed(1) : '0.0';
+                
+                // Calculate Tee Time
+                let teeTimeDisplay = '';
+                if (startTime) {
+                    const [hours, minutes] = startTime.split(':').map(Number);
+                    const date = new Date();
+                    date.setHours(hours);
+                    date.setMinutes(minutes + (gIdx * interval));
+                    const h = date.getHours().toString().padStart(2, '0');
+                    const m = date.getMinutes().toString().padStart(2, '0');
+                    teeTimeDisplay = `<span style="background: #e3f2fd; color: #1976D2; padding: 2px 8px; border-radius: 4px; font-size: 0.9em;">🕒 ${h}:${m}</span>`;
+                }
+
+                html += `
+                    <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f9f9f9;">
+                        <h4 style="margin-bottom: 10px; color: #333; display: flex; justify-content: space-between; align-items: center;">
+                            <span>
+                                ${t.labelGroup} ${gIdx + 1} ${teeTimeDisplay}
+                                <button onclick="addPlayerToGroup(${gIdx})" style="margin-left: 10px; background: #2196F3; color: white; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer;" title="${t.tooltipAddPlayer}">
+                                    +
+                                </button>
+                            </span>
+                            <span style="font-size: 0.9em; color: #666; font-weight: normal;">${t.labelAvg}: ${groupAvg}</span>
+                        </h4>
+                        <div class="players-list" style="min-height: 50px;">
+                `;
+                
+                if (group.length === 0) {
+                     html += `<div style="color: #999; font-style: italic; padding: 10px; text-align: center;">${t.msgEmptyGroup}</div>`;
+                } else {
+                    group.forEach((player, pIdx) => {
+                        const isSelected = swapSelection && swapSelection.type === 'group' && swapSelection.gIdx === gIdx && swapSelection.pIdx === pIdx;
+                        html += `
+                            <div class="player-card-swap ${isSelected ? 'selected-swap' : ''}" style="position: relative;">
+                                <div onclick="handlePlayerSwapClick(${gIdx}, ${pIdx})" style="flex-grow: 1; display: flex; justify-content: space-between;">
+                                    <span style="font-weight: 500;">${player.name}</span>
+                                    <span style="color: #666;">${player.score.toFixed(1)}</span>
+                                </div>
+                                <button onclick="removePlayerFromGroup(${gIdx}, ${pIdx})" style="margin-left: 10px; background: none; border: none; color: #f44336; cursor: pointer; font-weight: bold;">✕</button>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `</div></div>`;
+            });
+
+            html += `</div>`;
+            
+            // Add Save Button
+            const btnText = currentGameData.key ? t.btnUpdateGame : t.btnSaveGame;
+            html += `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="saveGame()" style="background: #2196F3; font-size: 1.1em;">
+                        ${btnText}
+                    </button>
+                    ${currentGameData.key ? `<button class="btn btn-secondary" onclick="currentGameData=null; renderCurrentPairings();" style="margin-left: 10px;">${t.btnCancelEdit}</button>` : ''}
+                </div>
+            `;
+            
+            html += `</div>`; // Close main column
+
+            // Available Players Column
+            html += `
+                <div style="flex: 1; min-width: 250px;">
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: sticky; top: 20px;">
+                        <h4 style="margin-bottom: 15px; color: #333; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
+                            ${t.labelAvailable}
+                        </h4>
+                        <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">${t.msgAvailabilityMultiple || 'Cochez les joueurs à ajouter'}</p>
+                        <div class="no-print" style="margin-bottom: 10px; display: flex; gap: 5px;">
+                            <button onclick="selectAllAvailable()" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em; flex: 1;">Tous</button>
+                            <button onclick="deselectAllAvailable()" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em; flex: 1;">Aucun</button>
+                        </div>
+                        <div style="max-height: 600px; overflow-y: auto;" id="availablePlayersContainer">
+            `;
+
+            if (availablePlayers.length === 0) {
+                html += `<p style="color: #999; font-style: italic;">${t.msgAllAssigned}</p>`;
+            } else {
+                availablePlayers.forEach((player, idx) => {
+                     html += `
+                        <div class="player-card-available" style="display: flex; align-items: center; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; cursor: pointer;" onclick="toggleAvailablePlayer(${idx})">
+                            <input type="checkbox" id="avail-cb-${idx}" class="available-player-cb" style="margin-right: 10px; cursor: pointer;" onclick="event.stopPropagation();" onchange="toggleAvailablePlayer(${idx})">
+                            <div style="flex-grow: 1;">
+                                <span style="font-weight: 500;">${player.name}</span>
+                                <span style="color: #666; margin-left: 10px;">${player.score.toFixed(1)}</span>
+                            </div>
+                        </div>
+                     `;
+                });
+            }
+
+            html += `</div></div></div></div>`; // Close available column & container
+            
+            container.innerHTML = html;
+            
+            // Store available players temporarily for reference
+            window.currentAvailablePlayers = availablePlayers;
+        };
+
+        window.toggleAvailablePlayer = function(idx) {
+            const cb = document.getElementById(`avail-cb-${idx}`);
+            if (cb) {
+                cb.checked = !cb.checked;
+            }
+        };
+        
+        window.selectAllAvailable = function() {
+            const checkboxes = document.querySelectorAll('.available-player-cb');
+            checkboxes.forEach(cb => cb.checked = true);
+        };
+        
+        window.deselectAllAvailable = function() {
+            const checkboxes = document.querySelectorAll('.available-player-cb');
+            checkboxes.forEach(cb => cb.checked = false);
+        };
+        
+        window.getSelectedAvailablePlayers = function() {
+            const checkboxes = document.querySelectorAll('.available-player-cb:checked');
+            return Array.from(checkboxes).map(cb => {
+                const idx = parseInt(cb.id.replace('avail-cb-', ''));
+                return window.currentAvailablePlayers[idx];
+            });
+        };
+
+        window.handleAvailablePlayerClick = function(availIdx) {
+            if (!swapSelection) {
+                swapSelection = { type: 'available', pIdx: availIdx };
+            } else {
+                if (swapSelection.type === 'available' && swapSelection.pIdx === availIdx) {
+                    swapSelection = null; // Deselect
+                } else if (swapSelection.type === 'group') {
+                    // Substitute! (Group Player -> Available Player)
+                    const groupParams = swapSelection;
+                    const availPlayer = window.currentAvailablePlayers[availIdx];
+                    
+                    // Replace group player with available player
+                    currentGameData.groups[groupParams.gIdx][groupParams.pIdx] = {
+                        name: availPlayer.name,
+                        score: availPlayer.score
+                    };
+                    
+                    // Old group player goes back to available pool implicitly (next render)
+                    swapSelection = null;
+                } else {
+                    swapSelection = { type: 'available', pIdx: availIdx }; // Change selection
+                }
+            }
+            renderCurrentPairings();
+        };
+        
+        window.addPlayerToGroup = function(gIdx) {
+            const t = translations[currentLang];
+            const selectedPlayers = getSelectedAvailablePlayers();
+            
+            if (selectedPlayers.length === 0) {
+                alert(t.alertSelectAvailable);
+                return;
+            }
+            
+            // Add all selected players to group
+            selectedPlayers.forEach(player => {
+                currentGameData.groups[gIdx].push({
+                    name: player.name,
+                    score: player.score
+                });
+            });
+            
+            swapSelection = null;
+            renderCurrentPairings();
+        };
+        
+        window.addNewFoursome = function() {
+            if (!currentGameData) return;
+            
+            const selectedPlayers = getSelectedAvailablePlayers();
+            
+            // Create new group with selected players (or empty if none selected)
+            const newGroup = selectedPlayers.map(player => ({
+                name: player.name,
+                score: player.score
+            }));
+            
+            currentGameData.groups.push(newGroup);
+            
+            // Clear any selection
+            swapSelection = null;
+            
+            renderCurrentPairings();
+            
+            // Scroll to the new group
+            setTimeout(() => {
+                const container = document.getElementById('pairingsResults');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 100);
+        };
+        
+        window.removePlayerFromGroup = function(gIdx, pIdx) {
+            // Remove from group
+            currentGameData.groups[gIdx].splice(pIdx, 1);
+            
+            // Clear any selection involving this index to prevent errors
+            if (swapSelection && swapSelection.type === 'group' && swapSelection.gIdx === gIdx) {
+                swapSelection = null;
+            }
+            
+            renderCurrentPairings();
+        };
+
+        window.handlePlayerSwapClick = function(gIdx, pIdx) {
+            if (!swapSelection) {
+                // Select first player
+                swapSelection = { type: 'group', gIdx, pIdx };
+            } else {
+                if (swapSelection.type === 'available') {
+                    // Substitute! (Available Player -> Group Player)
+                    const availPlayer = window.currentAvailablePlayers[swapSelection.pIdx];
+                    
+                    // Replace group player with available player
+                    currentGameData.groups[gIdx][pIdx] = {
+                        name: availPlayer.name,
+                        score: availPlayer.score
+                    };
+                    swapSelection = null;
+                } else if (swapSelection.type === 'group') {
+                    // Group <-> Group Swap
+                    if (swapSelection.gIdx === gIdx && swapSelection.pIdx === pIdx) {
+                        swapSelection = null; // Deselect
+                    } else {
+                        const p1 = currentGameData.groups[swapSelection.gIdx][swapSelection.pIdx];
+                        const p2 = currentGameData.groups[gIdx][pIdx];
+                        
+                        currentGameData.groups[swapSelection.gIdx][swapSelection.pIdx] = p2;
+                        currentGameData.groups[gIdx][pIdx] = p1;
+                        
+                        swapSelection = null;
+                    }
+                }
+            }
+            renderCurrentPairings();
+        };
+
+        window.saveGame = function() {
+            if (!currentGameData) return;
+            
+            const t = translations[currentLang];
+            const dataToSave = { ...currentGameData };
+            const key = dataToSave.key;
+            delete dataToSave.key; // Don't save key in the data
+            
+            let promise;
+            if (key) {
+                promise = gamesRef.child(key).update(dataToSave);
+            } else {
+                promise = gamesRef.push(dataToSave);
+            }
+
+            promise.then(() => {
+                const msg = key ? t.alertGameUpdated : t.alertGameSaved;
+                alert(msg);
+                currentGameData = null; // Reset
+                document.getElementById('pairingsResults').innerHTML = `<div class="empty-state"><p>${t.labelPairings}</p></div>`; // Clear view
+                loadGameHistory(); // Refresh history
+            }).catch((error) => {
+                console.error('Error saving game:', error);
+                alert(t.alertSaveFailed);
+            });
+        };
+
+        window.loadGameForEditing = function(gameKey) {
+            const game = window.historyGames.find(g => g.key === gameKey);
+            if (!game) return;
+
+            // Deep copy to avoid mutating history directly until saved
+            currentGameData = JSON.parse(JSON.stringify(game));
+            swapSelection = null;
+            
+            // Populate inputs
+            if (game.date) document.getElementById('planningDate').value = game.date;
+            if (game.course) document.getElementById('planningCourseSelect').value = game.course;
+            if (game.startTime) document.getElementById('planningStartTime').value = game.startTime;
+            if (game.interval) document.getElementById('planningTimeInterval').value = game.interval;
+            if (game.strategy) {
+                 const radios = document.getElementsByName('groupingStrategy');
+                 radios.forEach(r => r.checked = (r.value === game.strategy));
+            }
+
+            renderCurrentPairings();
+            
+            // Scroll to top
+            document.getElementById('pairingsResults').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.loadGameHistory = function() {
+            const container = document.getElementById('historyContainer');
+            const t = translations[currentLang];
+            
+            gamesRef.orderByChild('date').limitToLast(10).once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    container.innerHTML = `<div class="empty-state"><p>${t.noHistory}</p></div>`;
+                    return;
+                }
+
+                const games = [];
+                snapshot.forEach((child) => {
+                    games.push({ key: child.key, ...child.val() });
+                });
+                
+                // Store globally
+                window.historyGames = games;                
+
+                // Sort by date descending
+                games.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                let html = '';
+                games.forEach(game => {
+                    html += `
+                        <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                            <h4 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #2196F3; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                                <span>📅 ${game.date} | ⛳ ${game.course}</span>
+                                <button onclick="loadGameForEditing('${game.key}')" style="background: #FF9800; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+                                    ${t.btnLoadGame}
+                                </button>
+                            </h4>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                                ${t.labelStrategy}: ${game.strategy === 'random' ? t.optMixMatch : t.optBestAvg}
+                            </p>
+                    `;
+                    
+                    if (game.groups) {
+                        game.groups.forEach((group, i) => {
+                             let teeTimeDisplay = '';
+                             if (game.startTime) {
+                                const [hours, minutes] = game.startTime.split(':').map(Number);
+                                const date = new Date();
+                                date.setHours(hours);
+                                date.setMinutes(minutes + (i * game.interval));
+                                const h = date.getHours().toString().padStart(2, '0');
+                                const m = date.getMinutes().toString().padStart(2, '0');
+                                teeTimeDisplay = ` - ${h}:${m}`;
+                            }
+                            
+                            const playerNames = group.map(p => p.name).join(', ');
+                            html += `
+                                <div style="margin-bottom: 5px; font-size: 0.95em;">
+                                    <strong>${t.labelGroup} ${i + 1}${teeTimeDisplay}:</strong> ${playerNames}
+                                </div>
+                            `;
+                        });
+                    }
+                    html += `</div>`;
+                });
+                
+                container.innerHTML = html;
+            });
+        };
+    </script>
+</body>
+</html>
