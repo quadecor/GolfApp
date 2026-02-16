@@ -6,6 +6,10 @@
     <title>Golf Players Manager</title>
     <link rel="icon" type="image/png" href="le-golf.png">
     <link rel="apple-touch-icon" href="le-golf.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -3138,6 +3142,68 @@
                 container.innerHTML = html;
             });
         };
+    </script>
+
+    <!-- PWA Install Banner -->
+    <div id="installBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:linear-gradient(135deg,#2196F3,#1976D2); color:white; padding:16px 20px; z-index:9999; box-shadow:0 -4px 20px rgba(0,0,0,0.3); animation:slideUp 0.4s ease-out;">
+        <div style="max-width:600px; margin:0 auto; display:flex; align-items:center; gap:15px;">
+            <img src="le-golf.png" alt="Golf" style="width:48px; height:48px; border-radius:10px;">
+            <div style="flex:1;">
+                <strong style="font-size:1.1em;">Install Golf Manager</strong>
+                <p style="margin:4px 0 0; opacity:0.9; font-size:0.9em;" id="installDesc">Add to your home screen for quick access</p>
+            </div>
+            <button id="btnInstallApp" onclick="installApp()" style="background:white; color:#2196F3; border:none; padding:10px 24px; border-radius:8px; font-weight:700; font-size:1em; cursor:pointer; white-space:nowrap;">Install</button>
+            <button onclick="dismissInstall()" style="background:none; border:none; color:white; font-size:1.5em; cursor:pointer; padding:0 5px;">&times;</button>
+        </div>
+    </div>
+    <style>
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+
+    <script>
+        // --- PWA Service Worker & Install Prompt ---
+        let deferredPrompt = null;
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('✅ Service Worker registered', reg.scope))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+
+        // Capture the install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Show install banner if not previously dismissed
+            if (!localStorage.getItem('pwaInstallDismissed')) {
+                document.getElementById('installBanner').style.display = 'block';
+            }
+        });
+
+        // Handle install button click
+        function installApp() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(result => {
+                console.log('Install choice:', result.outcome);
+                deferredPrompt = null;
+                document.getElementById('installBanner').style.display = 'none';
+            });
+        }
+
+        // Dismiss install banner
+        function dismissInstall() {
+            document.getElementById('installBanner').style.display = 'none';
+            localStorage.setItem('pwaInstallDismissed', 'true');
+        }
+
+        // Hide banner if app is already installed
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installBanner').style.display = 'none';
+            deferredPrompt = null;
+            console.log('✅ App installed successfully!');
+        });
     </script>
 </body>
 </html>
