@@ -1043,7 +1043,7 @@
                         </div>
                         <div class="form-group" style="flex: 1;">
                             <label id="labelTimeInterval">Interval (min):</label>
-                            <input type="number" id="planningTimeInterval" class="search-input" style="width: 100%;" value="10" min="1">
+                            <input type="number" id="planningTimeInterval" class="search-input" style="width: 100%;" value="10" min="0">
                         </div>
                     </div>
 
@@ -2823,7 +2823,8 @@
             const strategy = document.querySelector('input[name="groupingStrategy"]:checked').value;
             const courseName = document.getElementById('planningCourseSelect').value;
             const startTimeInput = document.getElementById('planningStartTime').value;
-            const intervalInput = parseInt(document.getElementById('planningTimeInterval').value) || 10;
+            let intervalInput = parseInt(document.getElementById('planningTimeInterval').value);
+            if (isNaN(intervalInput) || intervalInput < 0) intervalInput = 10;
             const gameDate = document.getElementById('planningDate').value;
             
             if (!courseName) {
