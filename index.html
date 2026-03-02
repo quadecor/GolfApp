@@ -257,6 +257,28 @@
             font-size: 0.9em;
         }
 
+        .score-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+            color: #555;
+            cursor: pointer;
+        }
+        .score-toggle-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .planning-score-hidden .pp-score,
+        .planning-score-hidden .group-avg-score,
+        .planning-score-hidden .player-score-inline,
+        .planning-score-hidden .avail-player-score {
+            display: none !important;
+        }
+
         .planning-select-bar {
             display: flex;
             gap: 10px;
@@ -904,7 +926,7 @@
                     </div>
                     <div class="form-group">
                         <label for="averageScore" id="labelAvgScoreInput">Average Score</label>
-                        <input type="number" id="averageScore" placeholder="Enter average score" step="0.1" required>
+                        <input type="number" id="averageScore" placeholder="Enter average score" step="0.1">
                     </div>
                     <div class="btn-container">
                         <button type="submit" class="btn btn-primary" id="submitBtn">Add Player</button>
@@ -1037,6 +1059,11 @@
                                 <span id="optBestAvg">🏆 Best Average Together</span>
                             </label>
                         </div>
+                    </div>
+
+                    <div class="score-toggle-container">
+                        <input type="checkbox" id="showScoresToggle" onchange="togglePlanningScores()">
+                        <label for="showScoresToggle" id="labelShowScores">Show average scores</label>
                     </div>
 
                     <button class="btn btn-primary" onclick="showPlanningPlayers()" id="btnGenerate">Generate Pairings</button>
@@ -1268,9 +1295,9 @@
                     <h4>👥 Players Tab</h4>
                     <p>Manage your player roster:</p>
                     <ul>
-                        <li><strong>Add</strong> a player with their name and average score.</li>
+                        <li><strong>Add</strong> a player with their name. The average score is <strong>optional</strong> (defaults to 0 if left empty).</li>
                         <li><strong>Edit</strong> or <strong>Delete</strong> players using the action buttons.</li>
-                        <li>Players are <strong>ranked automatically</strong> by score (lowest = best).</li>
+                        <li>Players are <strong>sorted alphabetically</strong> by name by default.</li>
                         <li><strong>Select players</strong> using checkboxes to include them in game planning.</li>
                         <li>Stats cards show total players, average score, and best player.</li>
                     </ul>
@@ -1302,9 +1329,15 @@
                             <br>&nbsp;• Click <strong>(+)</strong> on a group to add available players.
                             <br>&nbsp;• Click <strong>(✕)</strong> to remove a player from a group.
                             <br>&nbsp;• Click <strong>"Add Foursome"</strong> to add a new empty group.
+                            <br>&nbsp;• Click <strong>🗑️</strong> on a group header to <strong>remove the entire foursome</strong> (with confirmation).
                         </li>
-                        <li><strong>6.</strong> <strong>Save</strong> the game to keep a history.</li>
+                        <li><strong>6.</strong> Use the <strong>"Show average scores"</strong> checkbox to toggle score visibility in the planning view. Scores are hidden by default.</li>
+                        <li><strong>7.</strong> <strong>Save</strong> the game to keep a history.</li>
                     </ul>
+                </div>
+                <div class="help-section">
+                    <h4>🔒 Player Availability</h4>
+                    <p>A player can only be assigned to <strong>one game per day</strong>, even across different courses. Once a game is saved, those players are automatically excluded from other games on the same date.</p>
                 </div>
                 <div class="help-section">
                     <h4>📤 Sharing</h4>
@@ -1336,9 +1369,9 @@
                     <h4>👥 Onglet Joueurs</h4>
                     <p>Gérez votre liste de joueurs :</p>
                     <ul>
-                        <li><strong>Ajoutez</strong> un joueur avec son nom et score moyen.</li>
+                        <li><strong>Ajoutez</strong> un joueur avec son nom. Le score moyen est <strong>optionnel</strong> (par défaut 0 si laissé vide).</li>
                         <li><strong>Modifiez</strong> ou <strong>Supprimez</strong> avec les boutons d'action.</li>
-                        <li>Les joueurs sont <strong>classés automatiquement</strong> par score (le plus bas = le meilleur).</li>
+                        <li>Les joueurs sont <strong>triés par ordre alphabétique</strong> par nom par défaut.</li>
                         <li><strong>Sélectionnez les joueurs</strong> avec les cases à cocher pour les inclure dans la planification.</li>
                         <li>Les cartes de stats affichent le total des joueurs, le score moyen et le meilleur joueur.</li>
                     </ul>
@@ -1370,9 +1403,15 @@
                             <br>&nbsp;• Cliquez <strong>(+)</strong> sur un groupe pour ajouter des joueurs disponibles.
                             <br>&nbsp;• Cliquez <strong>(✕)</strong> pour retirer un joueur d'un groupe.
                             <br>&nbsp;• Cliquez <strong>"Ajouter un Foursome"</strong> pour créer un nouveau groupe vide.
+                            <br>&nbsp;• Cliquez <strong>🗑️</strong> sur l'en-tête d'un groupe pour <strong>supprimer le foursome complet</strong> (avec confirmation).
                         </li>
-                        <li><strong>6.</strong> <strong>Sauvegardez</strong> la partie pour conserver un historique.</li>
+                        <li><strong>6.</strong> Utilisez la case <strong>"Afficher les scores moyens"</strong> pour afficher ou masquer les scores dans la vue planification. Les scores sont masqués par défaut.</li>
+                        <li><strong>7.</strong> <strong>Sauvegardez</strong> la partie pour conserver un historique.</li>
                     </ul>
+                </div>
+                <div class="help-section">
+                    <h4>🔒 Disponibilité des Joueurs</h4>
+                    <p>Un joueur ne peut être assigné qu'à <strong>une seule partie par jour</strong>, même sur des terrains différents. Une fois une partie sauvegardée, ces joueurs sont automatiquement exclus des autres parties à la même date.</p>
                 </div>
                 <div class="help-section">
                     <h4>📤 Partage</h4>
@@ -1536,7 +1575,10 @@
                 msgNoPlayersAvailable: "No players available for this date. All players are already in another game.",
                 msgNoPlayersInDB: "No players in database. Add players first in the Players tab.",
                 msgFoursomeFull: "This foursome already has 4 players.",
-                confirmCreateNewFoursome: "Would you like to create a new foursome with the selected player(s)?"
+                confirmCreateNewFoursome: "Would you like to create a new foursome with the selected player(s)?",
+                labelShowScores: "Show average scores",
+                btnRemoveFoursome: "Remove Group",
+                confirmRemoveFoursome: "Are you sure you want to remove this entire group? All players will be returned to the available list."
             },
             fr: {
                 headerTitle: "⛳ Gestionnaire de Golf",
@@ -1670,7 +1712,10 @@
                 msgNoPlayersAvailable: "Aucun joueur disponible pour cette date. Tous les joueurs sont déjà dans une autre partie.",
                 msgNoPlayersInDB: "Aucun joueur dans la base de données. Ajoutez des joueurs dans l'onglet Joueurs.",
                 msgFoursomeFull: "Ce quatuor a déjà 4 joueurs.",
-                confirmCreateNewFoursome: "Voulez-vous créer un nouveau quatuor avec le(s) joueur(s) sélectionné(s) ?"
+                confirmCreateNewFoursome: "Voulez-vous créer un nouveau quatuor avec le(s) joueur(s) sélectionné(s) ?",
+                labelShowScores: "Afficher les scores moyens",
+                btnRemoveFoursome: "Supprimer le Groupe",
+                confirmRemoveFoursome: "Êtes-vous sûr de vouloir supprimer ce groupe complet ? Tous les joueurs seront remis dans la liste des disponibles."
             }
         };
 
@@ -1780,6 +1825,7 @@
                     if (document.getElementById('msgLoadingHistory')) document.getElementById('msgLoadingHistory').textContent = t.msgLoadingHistory;
                     if (document.getElementById('labelAvailable')) document.getElementById('labelAvailable').textContent = t.labelAvailable;
                     if (document.getElementById('msgAvailability')) document.getElementById('msgAvailability').textContent = t.msgAvailability;
+                    if (document.getElementById('labelShowScores')) document.getElementById('labelShowScores').textContent = t.labelShowScores;
                     
                     // Update dropdown default option if it exists
                     const courseSelect = document.getElementById('planningCourseSelect');
@@ -1914,9 +1960,9 @@
             e.preventDefault();
             
             const name = playerName.value.trim();
-            const score = parseFloat(averageScore.value);
+            const score = averageScore.value.trim() !== '' ? parseFloat(averageScore.value) : 0;
             
-            if (!name || isNaN(score)) {
+            if (!name) {
                 alert(translations[currentLang].alertFillFields);
                 return;
             }
@@ -2003,7 +2049,7 @@
                 return;
             }
 
-            const sortedPlayers = [...players].sort((a, b) => a.score - b.score);
+            const sortedPlayers = [...players].sort((a, b) => a.name.localeCompare(b.name));
 
             let html = `
                 <table>
@@ -2694,6 +2740,8 @@
                 `;
             });
 
+            const showScores = document.getElementById('showScoresToggle') && document.getElementById('showScoresToggle').checked;
+
             html += `
                     </div>
                     <button class="btn btn-primary" onclick="generatePairings()" style="width: 100%; font-size: 1.1em; padding: 14px; background: #4CAF50;">
@@ -2704,8 +2752,24 @@
 
             container.innerHTML = html;
             container.style.display = 'block';
+            if (!showScores) container.classList.add('planning-score-hidden');
+            else container.classList.remove('planning-score-hidden');
             container.scrollIntoView({ behavior: 'smooth' });
         }
+
+        window.togglePlanningScores = function() {
+            const checked = document.getElementById('showScoresToggle').checked;
+            const planningSelection = document.getElementById('planningPlayerSelection');
+            const pairingsResults = document.getElementById('pairingsResults');
+            if (planningSelection) {
+                if (!checked) planningSelection.classList.add('planning-score-hidden');
+                else planningSelection.classList.remove('planning-score-hidden');
+            }
+            if (pairingsResults) {
+                if (!checked) pairingsResults.classList.add('planning-score-hidden');
+                else pairingsResults.classList.remove('planning-score-hidden');
+            }
+        };
 
         window.ppToggle = function(idx) {
             const cb = document.getElementById(`pp-cb-${idx}`);
@@ -2987,7 +3051,10 @@
                                     +
                                 </button>
                             </span>
-                            <span style="font-size: 0.9em; color: #666; font-weight: normal;">${t.labelAvg}: ${groupAvg}</span>
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <span class="group-avg-score" style="font-size: 0.9em; color: #666; font-weight: normal;">${t.labelAvg}: ${groupAvg}</span>
+                                <button onclick="removeFoursome(${gIdx})" style="background: none; border: 1px solid #f44336; color: #f44336; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 0.8em;" title="${t.btnRemoveFoursome}">🗑️</button>
+                            </span>
                         </h4>
                         <div class="players-list" style="min-height: 50px;">
                 `;
@@ -3001,7 +3068,7 @@
                             <div class="player-card-swap ${isSelected ? 'selected-swap' : ''}" style="position: relative;">
                                 <div onclick="handlePlayerSwapClick(${gIdx}, ${pIdx})" style="flex-grow: 1; display: flex; justify-content: space-between;">
                                     <span style="font-weight: 500;">${player.name}</span>
-                                    <span style="color: #666;">${player.score.toFixed(1)}</span>
+                                    <span class="player-score-inline" style="color: #666;">${player.score.toFixed(1)}</span>
                                 </div>
                                 <button onclick="removePlayerFromGroup(${gIdx}, ${pIdx})" style="margin-left: 10px; background: none; border: none; color: #f44336; cursor: pointer; font-weight: bold;">✕</button>
                             </div>
@@ -3051,7 +3118,7 @@
                             <input type="checkbox" id="avail-cb-${idx}" class="available-player-cb" style="margin-right: 10px; cursor: pointer;" onclick="event.stopPropagation();" onchange="toggleAvailablePlayer(${idx})">
                             <div style="flex-grow: 1;">
                                 <span style="font-weight: 500;">${player.name}</span>
-                                <span style="color: #666; margin-left: 10px;">${player.score.toFixed(1)}</span>
+                                <span class="avail-player-score" style="color: #666; margin-left: 10px;">${player.score.toFixed(1)}</span>
                             </div>
                         </div>
                      `;
@@ -3061,6 +3128,11 @@
             html += `</div></div></div></div>`; // Close available column & container
             
             container.innerHTML = html;
+
+            // Apply score visibility based on toggle
+            const showScoresChecked = document.getElementById('showScoresToggle') && document.getElementById('showScoresToggle').checked;
+            if (!showScoresChecked) container.classList.add('planning-score-hidden');
+            else container.classList.remove('planning-score-hidden');
             
             // Store available players temporarily for reference
             window.currentAvailablePlayers = availablePlayers;
@@ -3209,6 +3281,20 @@
             if (swapSelection && swapSelection.type === 'group' && swapSelection.gIdx === gIdx) {
                 swapSelection = null;
             }
+            
+            renderCurrentPairings();
+        };
+
+        window.removeFoursome = function(gIdx) {
+            if (!currentGameData || !currentGameData.groups[gIdx]) return;
+            const t = translations[currentLang];
+            if (!confirm(t.confirmRemoveFoursome)) return;
+            
+            // Remove the group
+            currentGameData.groups.splice(gIdx, 1);
+            
+            // Clear any swap selection to prevent stale references
+            swapSelection = null;
             
             renderCurrentPairings();
         };
