@@ -918,6 +918,7 @@
                 <button class="tab active" onclick="switchTab('players')" id="tabPlayers">👥 Players</button>
                 <button class="tab" onclick="switchTab('courses')" id="tabCourses">🏌️ Courses</button>
                 <button class="tab" onclick="switchTab('planning')" id="tabPlanning">📅 Planning</button>
+                <button class="tab" onclick="switchTab('tournaments')" id="tabTournaments">🏆 Tournaments</button>
             </div>
 
             <!-- Players Tab Content -->
@@ -1112,6 +1113,70 @@
             </div>
             <!-- End Planning Tab -->
 
+            <!-- Tournaments Tab Content -->
+            <div id="tournamentsTab" class="tab-content">
+                <div class="stats" id="tournamentStats">
+                    <div class="stat-card">
+                        <h3 id="labelTotalTournaments">Total Tournaments</h3>
+                        <p id="totalTournaments">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="labelTotalParticipants">Total Participants</h3>
+                        <p id="totalParticipantsCount">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="labelTotalPaid">Payments Received</h3>
+                        <p id="totalPaidCount">0</p>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 id="tournamentFormTitle" onclick="toggleTournamentForm()" style="cursor: pointer; user-select: none;">🏆 Create Tournament <span id="tournamentFormToggle" style="float: right; font-size: 0.7em;">▼</span></h2>
+                    <form id="tournamentForm" style="display: none;">
+                        <input type="hidden" id="editTournamentKey" value="">
+                        <div class="form-group">
+                            <label for="tournamentName" id="labelTournamentName">Tournament Name</label>
+                            <input type="text" id="tournamentName" placeholder="Enter tournament name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tournamentDate" id="labelTournamentDate">Date</label>
+                            <input type="date" id="tournamentDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tournamentCourse" id="labelTournamentCourse">Course 1</label>
+                            <select id="tournamentCourse" class="search-input" style="width: 100%;">
+                                <option value="">-- Choose a course --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tournamentCourse2" id="labelTournamentCourse2">Course 2</label>
+                            <select id="tournamentCourse2" class="search-input" style="width: 100%;">
+                                <option value="">-- Choose a course --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tournamentDinnerPrice" id="labelTournamentDinnerPrice">Dinner Price ($)</label>
+                            <input type="number" id="tournamentDinnerPrice" min="0" step="0.01" placeholder="0.00" style="width: 100%;">
+                        </div>
+                        <div class="btn-container">
+                            <button type="submit" class="btn btn-primary" id="submitTournamentBtn">Create Tournament</button>
+                            <button type="button" class="btn btn-secondary" id="cancelTournamentBtn" style="display: none;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-section">
+                    <h2 id="labelTournamentsList">📋 Tournaments</h2>
+                    <div id="tournamentsContainer">
+                        <div class="empty-state">
+                            <h3 id="labelNoTournaments">No tournaments yet</h3>
+                            <p id="labelNoTournamentsDesc">Create your first tournament to get started</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Tournaments Tab -->
+
         </div>
         
         <div class="footer" style="text-align: center; margin-top: 40px; color: #666; font-size: 0.9em; padding-bottom: 20px;">
@@ -1233,6 +1298,7 @@
                     players: {},
                     courses: {},
                     games: {},
+                    tournaments: {},
                     settings: {
                         language: 'en'
                     }
@@ -1279,6 +1345,7 @@
             playersRef = firebase.database().ref(`users/${userId}/players`);
             coursesRef = firebase.database().ref(`users/${userId}/courses`);
             gamesRef = firebase.database().ref(`users/${userId}/games`);
+            tournamentsRef = firebase.database().ref(`users/${userId}/tournaments`);
             userProfileRef = firebase.database().ref(`users/${userId}/profile`);
             userSettingsRef = firebase.database().ref(`users/${userId}/settings`);
             
@@ -1286,6 +1353,7 @@
             loadPlayers();
             loadCourses();
             loadGameHistory();
+            loadTournaments();
         }
 
         function showUserWelcome(name) {
@@ -1297,7 +1365,7 @@
         }
 
         // What's New Logic
-        const WHATS_NEW_VERSION = '2026.03.07';
+        const WHATS_NEW_VERSION = '2026.03.17';
 
         function showWhatsNewIfNeeded() {
             const seen = localStorage.getItem('golfApp_whatsNewSeen');
@@ -1313,55 +1381,55 @@
             const changes = currentLang === 'en' ? `
                 <ul style="list-style: none; padding: 0; margin: 0;">
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">✖ Cancel generation</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">You can now cancel foursome generation and go back without creating groups.</span>
+                        <strong style="color: #4CAF50;">🏆 Tournament Management</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Create and manage tournaments with participants, guests, and payment tracking.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">🔄 Auto-reset form</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">After generating or cancelling, all planning fields are automatically reset for a new game.</span>
+                        <strong style="color: #4CAF50;">🏌️ Prepare Foursomes</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Generate foursomes directly from tournament participants with one click.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">👁️ Scores hidden by default</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Scores are now hidden when sharing, emailing, or printing unless you enable them.</span>
+                        <strong style="color: #4CAF50;">⛳ Two Courses per Tournament</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Assign two courses to a tournament. Each course gets its own foursome setup, and players already assigned to one course are excluded from the other.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">💪 Bold groups & times</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Foursome names and tee times are now displayed in bold everywhere.</span>
+                        <strong style="color: #4CAF50;">🍽️ Dinner Price & Revenue</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Set a dinner price per tournament. See total expected revenue and amount collected from paid participants.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">🔗 Share from history</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Share a saved game directly from the history with one click.</span>
+                        <strong style="color: #4CAF50;">🎤 Three Participant Types</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Participants can be “Plays”, “Plays & Dinner”, or “Dinner Only” with inline editing.</span>
                     </li>
                     <li style="padding: 10px 0;">
-                        <strong style="color: #4CAF50;">0️⃣ Interval defaults to 0</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Time interval between groups now defaults to 0 minutes.</span>
+                        <strong style="color: #4CAF50;">📁 Collapsible Form</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">The tournament creation form is collapsed by default when tournaments exist. Click the title to expand.</span>
                     </li>
                 </ul>
             ` : `
                 <ul style="list-style: none; padding: 0; margin: 0;">
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">✖ Annuler la génération</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Vous pouvez maintenant annuler la génération des foursomes et revenir en arrière.</span>
+                        <strong style="color: #4CAF50;">🏆 Gestion des Tournois</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Créez et gérez des tournois avec participants, invités et suivi des paiements.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">🔄 Réinitialisation auto</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Après génération ou annulation, tous les champs sont remis à zéro pour une nouvelle partie.</span>
+                        <strong style="color: #4CAF50;">🏌️ Préparer les Foursomes</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Générez les foursomes directement à partir des participants du tournoi en un clic.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">👁️ Scores masqués par défaut</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Les scores sont cachés lors du partage, courriel ou impression sauf si activés.</span>
+                        <strong style="color: #4CAF50;">⛳ Deux Terrains par Tournoi</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Assignez deux terrains à un tournoi. Chaque terrain a ses propres foursomes et les joueurs déjà assignés sont exclus de l'autre.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">💪 Groupes et heures en gras</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Les noms de foursomes et heures de départ sont affichés en gras partout.</span>
+                        <strong style="color: #4CAF50;">🍽️ Prix du Souper & Revenus</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Définissez un prix de souper par tournoi. Voyez le revenu total attendu et le montant collecté.</span>
                     </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong style="color: #4CAF50;">🔗 Partager depuis l'historique</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">Partagez une partie sauvegardée directement depuis l'historique en un clic.</span>
+                        <strong style="color: #4CAF50;">🎤 Trois Types de Participants</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Les participants peuvent être « Joue », « Joue et Souper » ou « Souper seulement » avec modification en ligne.</span>
                     </li>
                     <li style="padding: 10px 0;">
-                        <strong style="color: #4CAF50;">0️⃣ Intervalle à 0 par défaut</strong><br>
-                        <span style="color: #666; font-size: 0.95em;">L'intervalle entre les groupes est maintenant à 0 minutes par défaut.</span>
+                        <strong style="color: #4CAF50;">📁 Formulaire Réductible</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Le formulaire de création de tournoi est fermé par défaut quand des tournois existent. Cliquez sur le titre pour l'ouvrir.</span>
                     </li>
                 </ul>
             `;
@@ -1697,7 +1765,61 @@
                 confirmCreateNewFoursome: "Would you like to create a new foursome with the selected player(s)?",
                 labelShowScores: "Show average scores",
                 btnRemoveFoursome: "Remove Group",
-                confirmRemoveFoursome: "Are you sure you want to remove this entire group? All players will be returned to the available list."
+                confirmRemoveFoursome: "Are you sure you want to remove this entire group? All players will be returned to the available list.",
+                // Tournaments
+                tabTournaments: "🏆 Tournaments",
+                labelTotalTournaments: "Total Tournaments",
+                labelTotalParticipants: "Total Participants",
+                labelTotalPaid: "Payments Received",
+                tournamentFormTitleAdd: "🏆 Create Tournament",
+                tournamentFormTitleEdit: "✏️ Edit Tournament",
+                labelTournamentName: "Tournament Name",
+                labelTournamentDate: "Date",
+                labelTournamentCourse: "Course 1",
+                labelTournamentCourse2: "Course 2",
+                labelTournamentDinnerPrice: "Dinner Price ($)",
+                placeholderTournamentName: "Enter tournament name",
+                btnCreateTournament: "Create Tournament",
+                btnUpdateTournament: "Update Tournament",
+                labelTournamentsList: "📋 Tournaments",
+                labelNoTournaments: "No tournaments yet",
+                labelNoTournamentsDesc: "Create your first tournament to get started",
+                labelAddParticipant: "Add Participant",
+                labelAddGuest: "Add Guest",
+                labelGuestName: "Guest Name",
+                labelGuestOf: "Guest of",
+                labelParticipantType: "Type",
+                optPlays: "🏌️ Plays",
+                optPlaysDinner: "🏌️🍽️ Plays & Dinner",
+                optDinnerOnly: "🍽️ Dinner Only",
+                labelPaid: "Paid",
+                labelUnpaid: "Not Paid",
+                btnTogglePaid: "💰 Paid",
+                btnToggleUnpaid: "❌ Not Paid",
+                labelPlayers: "Players",
+                labelTotalPlaying: "Total Playing",
+                labelTotalDinner: "Total Dinner",
+                labelGuests: "Guests",
+                labelDinnerOnly: "Dinner Only",
+                labelSummary: "Summary",
+                confirmDeleteTournament: "Are you sure you want to delete this tournament?",
+                alertTournamentSaved: "Tournament saved successfully!",
+                alertTournamentUpdated: "Tournament updated!",
+                alertTournamentDeleted: "Tournament deleted!",
+                labelSelectPlayer: "-- Select a player --",
+                alertSelectPlayerFirst: "Please select a player to add.",
+                alertPlayerAlreadyAdded: "This player is already in the tournament.",
+                alertEnterGuestName: "Please enter the guest's name.",
+                labelManageParticipants: "Manage Participants",
+                labelParticipantsAndGuests: "Participants & Guests",
+                labelEditParticipant: "Edit",
+                labelChangeType: "Change type",
+                labelEditName: "Edit name",
+                alertEnterNewName: "Enter new name:",
+                btnPrepareFoursomes: "Prepare Foursomes",
+                labelFoursomesGenerated: "Foursomes Already Generated",
+                labelDinnerRevenue: "Dinner Revenue",
+                labelCollected: "Collected"
             },
             fr: {
                 headerTitle: "⛳ Gestionnaire de Golf",
@@ -1836,7 +1958,57 @@
                 confirmCreateNewFoursome: "Voulez-vous créer un nouveau quatuor avec le(s) joueur(s) sélectionné(s) ?",
                 labelShowScores: "Afficher les scores moyens",
                 btnRemoveFoursome: "Supprimer le Groupe",
-                confirmRemoveFoursome: "Êtes-vous sûr de vouloir supprimer ce groupe complet ? Tous les joueurs seront remis dans la liste des disponibles."
+                confirmRemoveFoursome: "Êtes-vous sûr de vouloir supprimer ce groupe complet ? Tous les joueurs seront remis dans la liste des disponibles.",
+                // Tournois
+                tabTournaments: "🏆 Tournois",
+                labelTotalTournaments: "Total Tournois",
+                labelTotalParticipants: "Total Participants",
+                labelTotalPaid: "Paiements Reçus",
+                tournamentFormTitleAdd: "🏆 Créer un Tournoi",
+                tournamentFormTitleEdit: "✏️ Modifier le Tournoi",
+                labelTournamentName: "Nom du Tournoi",
+                labelTournamentDate: "Date",
+                labelTournamentCourse: "Terrain 1",
+                labelTournamentCourse2: "Terrain 2",
+                labelTournamentDinnerPrice: "Prix du Souper ($)",
+                placeholderTournamentName: "Entrez le nom du tournoi",
+                btnCreateTournament: "Créer le Tournoi",
+                btnUpdateTournament: "Mettre à Jour",
+                labelTournamentsList: "📋 Tournois",
+                labelNoTournaments: "Aucun tournoi pour le moment",
+                labelNoTournamentsDesc: "Créez votre premier tournoi pour commencer",
+                labelAddParticipant: "Ajouter un Participant",
+                labelAddGuest: "Ajouter un Invité",
+                labelGuestName: "Nom de l'Invité",
+                labelGuestOf: "Invité de",
+                labelParticipantType: "Type",
+                optPlays: "🏌️ Joue",
+                optPlaysDinner: "🏌️🍽️ Joue et Souper",
+                optDinnerOnly: "🍽️ Souper seulement",
+                labelPaid: "Payé",
+                labelUnpaid: "Non Payé",
+                btnTogglePaid: "💰 Payé",
+                btnToggleUnpaid: "❌ Non Payé",
+                labelPlayers: "Joueurs",
+                btnPrepareFoursomes: "Préparer les Forsomes",
+                labelFoursomesGenerated: "Forsomes Déjà Générés",
+                labelTotalPlaying: "Total Jouent",
+                labelTotalDinner: "Total Souper",
+                labelGuests: "Invités",
+                labelDinnerOnly: "Souper seulement",
+                labelSummary: "Résumé",
+                confirmDeleteTournament: "Êtes-vous sûr de vouloir supprimer ce tournoi ?",
+                alertTournamentSaved: "Tournoi sauvegardé avec succès !",
+                alertTournamentUpdated: "Tournoi mis à jour !",
+                alertTournamentDeleted: "Tournoi supprimé !",
+                labelSelectPlayer: "-- Sélectionner un joueur --",
+                alertSelectPlayerFirst: "Veuillez sélectionner un joueur à ajouter.",
+                alertPlayerAlreadyAdded: "Ce joueur est déjà dans le tournoi.",
+                alertEnterGuestName: "Veuillez entrer le nom de l'invité.",
+                labelManageParticipants: "Gérer les Participants",
+                labelParticipantsAndGuests: "Participants et Invités",
+                labelDinnerRevenue: "Revenus Souper",
+                labelCollected: "Collecté"
             }
         };
 
@@ -1875,6 +2047,7 @@
                 if(document.getElementById('tabPlayers')) document.getElementById('tabPlayers').innerHTML = t.tabPlayers;
                 if(document.getElementById('tabCourses')) document.getElementById('tabCourses').innerHTML = t.tabCourses;
                 if(document.getElementById('tabPlanning')) document.getElementById('tabPlanning').innerHTML = t.tabPlanning;
+                if(document.getElementById('tabTournaments')) document.getElementById('tabTournaments').innerHTML = t.tabTournaments;
                 
                 // Players section
                 if(document.getElementById('labelTotalPlayers')) document.getElementById('labelTotalPlayers').textContent = t.labelTotalPlayers;
@@ -1927,6 +2100,25 @@
             // Redisplay players and courses to update table headers
             try { displayPlayers(); } catch(e) { console.error("Error displaying players", e); }
             try { displayCourses(); } catch(e) { console.error("Error displaying courses", e); }
+
+            // Tournaments
+            try {
+                if(document.getElementById('labelTotalTournaments')) document.getElementById('labelTotalTournaments').textContent = t.labelTotalTournaments;
+                if(document.getElementById('labelTotalParticipants')) document.getElementById('labelTotalParticipants').textContent = t.labelTotalParticipants;
+                if(document.getElementById('labelTotalPaid')) document.getElementById('labelTotalPaid').textContent = t.labelTotalPaid;
+                if(document.getElementById('labelTournamentName')) document.getElementById('labelTournamentName').textContent = t.labelTournamentName;
+                if(document.getElementById('labelTournamentDate')) document.getElementById('labelTournamentDate').textContent = t.labelTournamentDate;
+                if(document.getElementById('labelTournamentCourse')) document.getElementById('labelTournamentCourse').textContent = t.labelTournamentCourse;
+                if(document.getElementById('labelTournamentCourse2')) document.getElementById('labelTournamentCourse2').textContent = t.labelTournamentCourse2;
+                if(document.getElementById('labelTournamentDinnerPrice')) document.getElementById('labelTournamentDinnerPrice').textContent = t.labelTournamentDinnerPrice;
+                if(document.getElementById('tournamentName')) document.getElementById('tournamentName').placeholder = t.placeholderTournamentName;
+                if(document.getElementById('labelTournamentsList')) document.getElementById('labelTournamentsList').textContent = t.labelTournamentsList;
+                if(document.getElementById('cancelTournamentBtn')) document.getElementById('cancelTournamentBtn').textContent = t.btnCancel;
+                const editingTournament = document.getElementById('editTournamentKey') && document.getElementById('editTournamentKey').value !== '';
+                if(document.getElementById('tournamentFormTitle')) { const _title = editingTournament ? t.tournamentFormTitleEdit : t.tournamentFormTitleAdd; document.getElementById('tournamentFormTitle').innerHTML = _title + ' <span id="tournamentFormToggle" style="float: right; font-size: 0.7em;">' + (document.getElementById('tournamentForm').style.display === 'none' ? '▼' : '▲') + '</span>'; }
+                if(document.getElementById('submitTournamentBtn')) document.getElementById('submitTournamentBtn').textContent = editingTournament ? t.btnUpdateTournament : t.btnCreateTournament;
+                try { displayTournaments(); } catch(e) {}
+            } catch(e) { console.error('Error updating tournament translations', e); }
 
             // Planning
             try {
@@ -1981,8 +2173,8 @@
             
             // Update tab buttons
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const btnId = tab === 'players' ? 'tabPlayers' : (tab === 'courses' ? 'tabCourses' : 'tabPlanning');
-            document.getElementById(btnId).classList.add('active');
+            const tabMap = { players: 'tabPlayers', courses: 'tabCourses', planning: 'tabPlanning', tournaments: 'tabTournaments' };
+            document.getElementById(tabMap[tab]).classList.add('active');
             
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -1991,6 +2183,11 @@
             if (tab === 'planning') {
                 updatePlanningDropdown();
                 loadGameHistory();
+            }
+            if (tab === 'tournaments') {
+                updateTournamentCourseDropdown();
+                loadGameHistory();
+                loadTournaments();
             }
         }
 
@@ -2012,6 +2209,7 @@
         let playersRef;
         let coursesRef;
         let gamesRef;
+        let tournamentsRef;
         let auth;
         
         try {
@@ -2021,6 +2219,7 @@
             playersRef = database.ref('players');
             coursesRef = database.ref('courses');
             gamesRef = database.ref('games');
+            tournamentsRef = database.ref('tournaments');
             console.log('✅ Firebase connected successfully!');
             console.log('✅ Firebase Auth object:', auth);
             console.log('✅ Firebase Auth available:', !!auth);
@@ -2367,6 +2566,7 @@
                 
                 displayCourses();
                 updateCourseStats();
+                updateTournamentCourseDropdown();
             }, (error) => {
                 console.error('Error loading courses:', error);
                 alert('Failed to load courses from database');
@@ -2812,20 +3012,38 @@
         function renderPlanningPlayerSelection() {
             const t = translations[currentLang];
             const container = document.getElementById('planningPlayerSelection');
+            const isTournamentMode = window._tournamentPlayingParticipants && window._tournamentPlayingParticipants.length > 0;
 
-            if (players.length === 0) {
-                container.style.display = 'block';
-                container.innerHTML = `
-                    <div class="form-section" style="background: #fff3e0; border: 1px solid #ffe0b2;">
-                        <p style="color: #e65100; text-align: center;">${t.msgNoPlayersInDB}</p>
-                    </div>`;
-                return;
+            let availablePlayers;
+
+            if (isTournamentMode) {
+                // Tournament mode: only show tournament participants who play
+                const tournamentParticipants = window._tournamentPlayingParticipants;
+                availablePlayers = tournamentParticipants.map((p, idx) => {
+                    const dbPlayer = players.find(pl => pl.name === p.name);
+                    return {
+                        name: p.name,
+                        score: dbPlayer ? dbPlayer.score : 0,
+                        originalIndex: dbPlayer ? players.indexOf(dbPlayer) : -1,
+                        isGuest: p.isGuest || !dbPlayer
+                    };
+                });
+            } else {
+                // Normal mode: show all available players from database
+                if (players.length === 0) {
+                    container.style.display = 'block';
+                    container.innerHTML = `
+                        <div class="form-section" style="background: #fff3e0; border: 1px solid #ffe0b2;">
+                            <p style="color: #e65100; text-align: center;">${t.msgNoPlayersInDB}</p>
+                        </div>`;
+                    return;
+                }
+
+                availablePlayers = players
+                    .map((p, idx) => ({ ...p, originalIndex: idx, isGuest: false }))
+                    .filter(p => !playersUnavailableForDate.has(p.name))
+                    .sort((a, b) => a.score - b.score);
             }
-
-            const availablePlayers = players
-                .map((p, idx) => ({ ...p, originalIndex: idx }))
-                .filter(p => !playersUnavailableForDate.has(p.name))
-                .sort((a, b) => a.score - b.score);
 
             if (availablePlayers.length === 0) {
                 container.style.display = 'block';
@@ -2850,8 +3068,8 @@
             availablePlayers.forEach((player, idx) => {
                 html += `
                     <div class="planning-player-item" onclick="ppToggle(${idx})">
-                        <input type="checkbox" class="pp-checkbox" id="pp-cb-${idx}" data-player-index="${player.originalIndex}" onclick="event.stopPropagation(); ppUpdateCount();">
-                        <span class="pp-name">${player.name}</span>
+                        <input type="checkbox" class="pp-checkbox" id="pp-cb-${idx}" data-player-index="${player.originalIndex}" data-player-name="${player.name}" onclick="event.stopPropagation(); ppUpdateCount();">
+                        <span class="pp-name">${player.name}${player.isGuest ? ' 🎫' : ''}</span>
                         <span class="pp-score">${player.score.toFixed(1)}</span>
                     </div>
                 `;
@@ -2876,6 +3094,23 @@
             container.style.display = 'block';
             if (!showScores) container.classList.add('planning-score-hidden');
             else container.classList.remove('planning-score-hidden');
+
+            // Auto-select tournament players if coming from tournament
+            if (window._tournamentPreSelect && window._tournamentPreSelect.length > 0) {
+                const preSelectNames = window._tournamentPreSelect;
+                availablePlayers.forEach((player, idx) => {
+                    if (preSelectNames.includes(player.name)) {
+                        const cb = document.getElementById(`pp-cb-${idx}`);
+                        if (cb) {
+                            cb.checked = true;
+                            cb.closest('.planning-player-item').classList.add('pp-selected');
+                        }
+                    }
+                });
+                window._tournamentPreSelect = null;
+                ppUpdateCount();
+            }
+
             container.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -2938,8 +3173,13 @@
 
             const selectedPlayers = Array.from(selectedCheckboxes).map(cb => {
                 const idx = parseInt(cb.dataset.playerIndex);
-                return players[idx];
-            }).filter(p => p && !playersUnavailableForDate.has(p.name));
+                const name = cb.dataset.playerName || '';
+                if (idx >= 0 && players[idx]) {
+                    return players[idx];
+                }
+                // Guest from tournament (not in players database)
+                return { name: name, score: 0 };
+            }).filter(p => p && p.name);
             
             // Get strategy & Time
             const strategy = document.querySelector('input[name="groupingStrategy"]:checked').value;
@@ -2991,11 +3231,15 @@
                 createdAt: Date.now()
             };
 
+            // Link to tournament if coming from tournament
+            if (window._tournamentKeyForGame) {
+                currentGameData.tournamentKey = window._tournamentKeyForGame;
+                currentGameData.tournamentName = window._tournamentNameForGame || '';
+                // Don't clear tournament state yet - needed for second course after save
+            }
+
             // Hide the player selection panel
             document.getElementById('planningPlayerSelection').style.display = 'none';
-
-            // Reset all planning form fields for a new game
-            resetPlanningForm();
 
             renderCurrentPairings();
         };
@@ -3003,7 +3247,18 @@
         // Cancel planning selection and go back
         window.cancelPlanningSelection = function() {
             document.getElementById('planningPlayerSelection').style.display = 'none';
+            window._tournamentPreSelect = null;
+            window._tournamentPlayingParticipants = null;
+            window._tournamentOtherGamePlayers = null;
+            window._tournamentKeyForGame = null;
+            window._tournamentNameForGame = null;
+            window._tournamentPendingCourse2 = null;
+            window._tournamentPendingParticipants2 = null;
+            window._tournamentPendingKey2 = null;
+            window._tournamentPendingName2 = null;
             resetPlanningForm();
+            // Restore full course dropdown
+            updatePlanningDropdown();
         };
 
         // Reset all planning form fields to defaults
@@ -3131,13 +3386,38 @@
                 return;
             }
             
-            const { groups, course, strategy, startTime, interval } = currentGameData;
+            const { course, strategy, startTime, interval } = currentGameData;
+            // Ensure groups is a proper array (Firebase may store as object)
+            if (currentGameData.groups && !Array.isArray(currentGameData.groups)) {
+                currentGameData.groups = Object.values(currentGameData.groups);
+            }
+            if (currentGameData.groups) {
+                currentGameData.groups = currentGameData.groups.map(g => Array.isArray(g) ? g : Object.values(g || {}));
+            }
+            const groups = currentGameData.groups || [];
             
             // Calculate available players (in DB but not in current game groups)
             const playersInGame = new Set();
             groups.forEach(g => g.forEach(p => playersInGame.add(p.name)));
-            
-            const availablePlayers = players.filter(p => !playersInGame.has(p.name) && !playersUnavailableForDate.has(p.name));
+
+            let availablePlayers;
+            if (currentGameData.tournamentKey && window._tournamentPlayingParticipants) {
+                // Tournament mode: only show tournament participants not already in groups or other tournament games
+                const otherGamePlayers = window._tournamentOtherGamePlayers || new Set();
+                availablePlayers = window._tournamentPlayingParticipants
+                    .filter(p => !playersInGame.has(p.name) && !otherGamePlayers.has(p.name))
+                    .map(p => {
+                        const dbPlayer = players.find(pl => pl.name === p.name);
+                        return {
+                            name: p.name,
+                            score: dbPlayer ? dbPlayer.score : 0,
+                            isGuest: p.isGuest || !dbPlayer
+                        };
+                    });
+            } else {
+                // Normal mode: all available DB players
+                availablePlayers = players.filter(p => !playersInGame.has(p.name) && !playersUnavailableForDate.has(p.name));
+            }
             
             let html = `
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
@@ -3254,7 +3534,7 @@
                         <div class="player-card-available" style="display: flex; align-items: center; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 5px; background: white; cursor: pointer;" onclick="toggleAvailablePlayer(${idx})">
                             <input type="checkbox" id="avail-cb-${idx}" class="available-player-cb" style="margin-right: 10px; cursor: pointer;" onclick="event.stopPropagation();" onchange="toggleAvailablePlayer(${idx})">
                             <div style="flex-grow: 1;">
-                                <span style="font-weight: 500;">${player.name}</span>
+                                <span style="font-weight: 500;">${player.name}${player.isGuest ? ' 🎫' : ''}</span>
                                 <span class="avail-player-score" style="color: #666; margin-left: 10px;">${player.score.toFixed(1)}</span>
                             </div>
                         </div>
@@ -3473,9 +3753,25 @@
             if (!currentGameData) return;
             
             const t = translations[currentLang];
+            // Ensure groups is a proper array before saving
+            if (currentGameData.groups && !Array.isArray(currentGameData.groups)) {
+                currentGameData.groups = Object.values(currentGameData.groups);
+            }
+            if (currentGameData.groups) {
+                currentGameData.groups = currentGameData.groups.map(g => Array.isArray(g) ? g : Object.values(g || {}));
+            }
             const dataToSave = { ...currentGameData };
             const key = dataToSave.key;
             delete dataToSave.key; // Don't save key in the data
+
+            // Capture players used in this game before saving
+            const usedPlayerNames = [];
+            if (currentGameData.groups) {
+                currentGameData.groups.forEach(g => g.forEach(p => usedPlayerNames.push(p.name)));
+            }
+
+            // Check if there's a pending second tournament course
+            const hasPendingSecondCourse = window._tournamentPendingCourse2 && window._tournamentPendingParticipants2;
             
             let promise;
             if (key) {
@@ -3490,15 +3786,78 @@
                 currentGameData = null; // Reset
                 document.getElementById('pairingsResults').innerHTML = `<div class="empty-state"><p>${t.labelPairings}</p></div>`; // Clear view
                 loadGameHistory(); // Refresh history
-                // Refresh unavailable players since we just saved a game
-                refreshPlayersUnavailableForDate(function() {
-                    displayPlayers();
-                });
+
+                // If there's a second tournament course, set it up now
+                if (hasPendingSecondCourse) {
+                    const course2 = window._tournamentPendingCourse2;
+                    const remainingParticipants = window._tournamentPendingParticipants2.filter(p => !usedPlayerNames.includes(p.name));
+                    const tournamentKey = window._tournamentPendingKey2;
+                    const tournamentName = window._tournamentPendingName2;
+
+                    // Clear second course state
+                    window._tournamentPendingCourse2 = null;
+                    window._tournamentPendingParticipants2 = null;
+                    window._tournamentPendingKey2 = null;
+                    window._tournamentPendingName2 = null;
+
+                    if (remainingParticipants.length > 0) {
+                        // Set up for second course — don't pre-select players, let user choose
+                        window._tournamentPlayingParticipants = remainingParticipants;
+                        window._tournamentPreSelect = null;
+                        window._tournamentKeyForGame = tournamentKey;
+                        window._tournamentNameForGame = tournamentName;
+
+                        // Set course dropdown to second course only
+                        const courseSelect = document.getElementById('planningCourseSelect');
+                        courseSelect.innerHTML = `<option value="">${t.optChooseCourse}</option>`;
+                        const courseData = courses.find(c => c.name === course2);
+                        const opt = document.createElement('option');
+                        opt.value = course2;
+                        opt.textContent = courseData ? `${course2} (${courseData.location})` : course2;
+                        courseSelect.appendChild(opt);
+                        courseSelect.value = course2;
+
+                        // Keep date, set start time
+                        if (!document.getElementById('planningStartTime').value) {
+                            document.getElementById('planningStartTime').value = '08:00';
+                        }
+
+                        alert(`${t.btnPrepareFoursomes} - ${course2} (${remainingParticipants.length} ${t.ppSelected})`);
+
+                        // Show player selection for second course
+                        refreshPlayersUnavailableForDate(function() {
+                            renderPlanningPlayerSelection();
+                        });
+                    } else {
+                        // No players left for second course
+                        clearTournamentState();
+                    }
+                } else {
+                    clearTournamentState();
+                    // Refresh unavailable players since we just saved a game
+                    refreshPlayersUnavailableForDate(function() {
+                        displayPlayers();
+                    });
+                }
             }).catch((error) => {
                 console.error('Error saving game:', error);
                 alert(t.alertSaveFailed);
             });
         };
+
+        function clearTournamentState() {
+            window._tournamentPreSelect = null;
+            window._tournamentPlayingParticipants = null;
+            window._tournamentOtherGamePlayers = null;
+            window._tournamentKeyForGame = null;
+            window._tournamentNameForGame = null;
+            window._tournamentPendingCourse2 = null;
+            window._tournamentPendingParticipants2 = null;
+            window._tournamentPendingKey2 = null;
+            window._tournamentPendingName2 = null;
+            resetPlanningForm();
+            updatePlanningDropdown();
+        }
 
         window.loadGameForEditing = function(gameKey) {
             const game = window.historyGames.find(g => g.key === gameKey);
@@ -3506,6 +3865,13 @@
 
             // Deep copy to avoid mutating history directly until saved
             currentGameData = JSON.parse(JSON.stringify(game));
+            // Ensure groups is a proper array (Firebase may return objects with numeric keys)
+            if (currentGameData.groups && !Array.isArray(currentGameData.groups)) {
+                currentGameData.groups = Object.values(currentGameData.groups);
+            }
+            if (currentGameData.groups) {
+                currentGameData.groups = currentGameData.groups.map(g => Array.isArray(g) ? g : Object.values(g || {}));
+            }
             swapSelection = null;
             
             // Populate inputs
@@ -3518,13 +3884,47 @@
                  radios.forEach(r => r.checked = (r.value === game.strategy));
             }
 
-            renderCurrentPairings();
-            
-            // Refresh unavailable players (excluding the game being edited)
-            refreshPlayersUnavailableForDate(function() {
-                displayPlayers();
-                renderCurrentPairings(); // Re-render to update available players column
-            });
+            // If this is a tournament game, load tournament participants for filtering
+            if (game.tournamentKey && tournamentsRef) {
+                tournamentsRef.child(game.tournamentKey).once('value', (snap) => {
+                    const tournament = snap.val();
+                    if (tournament && tournament.participants) {
+                        const playingParticipants = tournament.participants.filter(p => p.type === 'plays' || p.type === 'plays_dinner');
+                        window._tournamentPlayingParticipants = playingParticipants;
+                        window._tournamentKeyForGame = game.tournamentKey;
+                        window._tournamentNameForGame = game.tournamentName || tournament.name;
+                    }
+                    // Also find players in OTHER games of the same tournament (not the current one)
+                    gamesRef.orderByChild('tournamentKey').equalTo(game.tournamentKey).once('value', (gamesSnap) => {
+                        const otherGamePlayers = new Set();
+                        gamesSnap.forEach(child => {
+                            if (child.key !== gameKey) {
+                                let otherGroups = child.val().groups || [];
+                                if (!Array.isArray(otherGroups)) otherGroups = Object.values(otherGroups);
+                                otherGroups.forEach(g => {
+                                    let group = Array.isArray(g) ? g : Object.values(g || {});
+                                    group.forEach(p => otherGamePlayers.add(p.name));
+                                });
+                            }
+                        });
+                        window._tournamentOtherGamePlayers = otherGamePlayers;
+                        renderCurrentPairings();
+                        refreshPlayersUnavailableForDate(function() {
+                            displayPlayers();
+                            renderCurrentPairings();
+                        });
+                    });
+                });
+            } else {
+                // Clear tournament state for non-tournament games
+                window._tournamentPlayingParticipants = null;
+                window._tournamentOtherGamePlayers = null;
+                renderCurrentPairings();
+                refreshPlayersUnavailableForDate(function() {
+                    displayPlayers();
+                    renderCurrentPairings();
+                });
+            }
             
             // Scroll to top
             document.getElementById('pairingsResults').scrollIntoView({ behavior: 'smooth' });
@@ -3541,7 +3941,13 @@
                     currentGameData = null;
                     document.getElementById('pairingsResults').innerHTML = `<div class="empty-state"><p>${t.msgSelectPlayers}</p></div>`;
                 }
+                // Immediately remove from local cache to avoid race condition
+                if (window.historyGames) {
+                    window.historyGames = window.historyGames.filter(g => g.key !== gameKey);
+                }
                 loadGameHistory();
+                // Refresh tournament display so "Prepare Foursomes" button becomes available again
+                loadTournaments();
                 // Refresh unavailable players since a game was removed
                 refreshPlayersUnavailableForDate(function() {
                     displayPlayers();
@@ -3565,7 +3971,15 @@
 
                 const games = [];
                 snapshot.forEach((child) => {
-                    games.push({ key: child.key, ...child.val() });
+                    const gameData = child.val();
+                    // Normalize groups (Firebase may store arrays as objects)
+                    if (gameData.groups && !Array.isArray(gameData.groups)) {
+                        gameData.groups = Object.values(gameData.groups);
+                    }
+                    if (gameData.groups) {
+                        gameData.groups = gameData.groups.map(g => Array.isArray(g) ? g : Object.values(g || {}));
+                    }
+                    games.push({ key: child.key, ...gameData });
                 });
                 
                 // Store globally
@@ -3579,7 +3993,7 @@
                     html += `
                         <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
                             <h4 style="color: #333; margin-bottom: 10px; border-bottom: 2px solid #2196F3; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
-                                <span>📅 ${game.date} | ⛳ <span style="color: #1565C0; font-weight: bold;">${game.course}</span></span>
+                                <span>📅 ${game.date} | ⛳ <span style="color: #1565C0; font-weight: bold;">${game.course}</span>${game.tournamentName ? ` | 🏆 <span style="color: #7b1fa2; font-weight: bold;">${game.tournamentName}</span>` : ''}</span>
                                 <div style="display: flex; gap: 6px;">
                                     <button onclick="shareHistoryGame('${game.key}')" style="background: #607d8b; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
                                         ${t.btnShareHistory}
@@ -3622,6 +4036,661 @@
                 });
                 
                 container.innerHTML = html;
+            });
+        };
+
+        // ========================================
+        // TOURNAMENTS MANAGEMENT
+        // ========================================
+        let tournamentsList = [];
+        let tournamentKeysMap = {};
+
+        // Tournament form
+        const tournamentForm = document.getElementById('tournamentForm');
+        const tournamentNameInput = document.getElementById('tournamentName');
+        const tournamentDateInput = document.getElementById('tournamentDate');
+        const tournamentCourseSelect = document.getElementById('tournamentCourse');
+        const tournamentCourse2Select = document.getElementById('tournamentCourse2');
+        const editTournamentKey = document.getElementById('editTournamentKey');
+        const submitTournamentBtn2 = document.getElementById('submitTournamentBtn');
+        const cancelTournamentBtn2 = document.getElementById('cancelTournamentBtn');
+
+        function updateTournamentCourseDropdown() {
+            const t = translations[currentLang];
+            [document.getElementById('tournamentCourse'), document.getElementById('tournamentCourse2')].forEach(select => {
+                if (!select) return;
+                const currentVal = select.value;
+                select.innerHTML = `<option value="">${t.labelSelectPlayer ? '-- ' + t.labelTournamentCourse + ' --' : '-- Choose a course --'}</option>`;
+                courses.forEach(course => {
+                    const opt = document.createElement('option');
+                    opt.value = course.name;
+                    opt.textContent = `${course.name} (${course.location})`;
+                    if (course.name === currentVal) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        if (tournamentForm) {
+            tournamentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const t = translations[currentLang];
+                const name = tournamentNameInput.value.trim();
+                const date = tournamentDateInput.value;
+                const course = tournamentCourseSelect.value;
+                const course2 = tournamentCourse2Select ? tournamentCourse2Select.value : '';
+                const dinnerPrice = parseFloat(document.getElementById('tournamentDinnerPrice').value) || 0;
+
+                if (!name || !date) {
+                    alert(t.alertFillFields);
+                    return;
+                }
+
+                const key = editTournamentKey.value;
+                const tournamentData = {
+                    name: name,
+                    date: date,
+                    course: course,
+                    course2: course2,
+                    dinnerPrice: dinnerPrice,
+                    updatedAt: Date.now()
+                };
+
+                if (key) {
+                    tournamentsRef.child(key).update(tournamentData).then(() => {
+                        alert(t.alertTournamentUpdated);
+                        resetTournamentForm();
+                        loadTournaments();
+                    }).catch(err => console.error('Error updating tournament:', err));
+                } else {
+                    tournamentData.createdAt = Date.now();
+                    tournamentData.participants = [];
+                    tournamentsRef.push(tournamentData).then(() => {
+                        alert(t.alertTournamentSaved);
+                        resetTournamentForm();
+                        loadTournaments();
+                    }).catch(err => console.error('Error creating tournament:', err));
+                }
+            });
+        }
+
+        if (cancelTournamentBtn2) {
+            cancelTournamentBtn2.addEventListener('click', resetTournamentForm);
+        }
+
+        function resetTournamentForm() {
+            const t = translations[currentLang];
+            if (tournamentForm) tournamentForm.reset();
+            if (editTournamentKey) editTournamentKey.value = '';
+            if (document.getElementById('tournamentFormTitle')) { document.getElementById('tournamentFormTitle').innerHTML = t.tournamentFormTitleAdd + ' <span id="tournamentFormToggle" style="float: right; font-size: 0.7em;">' + (document.getElementById('tournamentForm').style.display === 'none' ? '▼' : '▲') + '</span>'; }
+            if (submitTournamentBtn2) submitTournamentBtn2.textContent = t.btnCreateTournament;
+            if (cancelTournamentBtn2) cancelTournamentBtn2.style.display = 'none';
+        }
+
+        function toggleTournamentForm() {
+            const form = document.getElementById('tournamentForm');
+            const toggle = document.getElementById('tournamentFormToggle');
+            if (form.style.display === 'none') {
+                form.style.display = '';
+                toggle.textContent = '▲';
+            } else {
+                form.style.display = 'none';
+                toggle.textContent = '▼';
+            }
+        }
+
+        function updateTournamentFormVisibility() {
+            const form = document.getElementById('tournamentForm');
+            const toggle = document.getElementById('tournamentFormToggle');
+            if (!form || !toggle) return;
+            if (tournamentsList.length === 0) {
+                form.style.display = '';
+                toggle.textContent = '▲';
+            } else {
+                form.style.display = 'none';
+                toggle.textContent = '▼';
+            }
+        }
+
+        // Map: tournamentKey → Set of course names that already have games
+        let tournamentCoursesWithGames = {};
+
+        function loadTournaments() {
+            if (!tournamentsRef) return;
+            // Load tournaments and all games with a tournamentKey in parallel
+            Promise.all([
+                tournamentsRef.once('value'),
+                gamesRef.orderByChild('tournamentKey').once('value')
+            ]).then(([tournSnap, gamesSnap]) => {
+                tournamentsList = [];
+                tournamentKeysMap = {};
+                tournSnap.forEach((child) => {
+                    const data = child.val();
+                    data.key = child.key;
+                    tournamentsList.push(data);
+                    tournamentKeysMap[child.key] = data;
+                });
+                // Build map: tournamentKey → Set of courses with games
+                tournamentCoursesWithGames = {};
+                gamesSnap.forEach((child) => {
+                    const g = child.val();
+                    if (g.tournamentKey) {
+                        if (!tournamentCoursesWithGames[g.tournamentKey]) {
+                            tournamentCoursesWithGames[g.tournamentKey] = new Set();
+                        }
+                        if (g.course) tournamentCoursesWithGames[g.tournamentKey].add(g.course);
+                    }
+                });
+                displayTournaments();
+                updateTournamentStats();
+                // Collapse form if tournaments exist, expand if none
+                updateTournamentFormVisibility();
+            });
+        }
+
+        function updateTournamentStats() {
+            document.getElementById('totalTournaments').textContent = tournamentsList.length;
+            let totalP = 0;
+            let totalPaid = 0;
+            tournamentsList.forEach(t => {
+                const parts = t.participants || [];
+                totalP += parts.length;
+                totalPaid += parts.filter(p => p.paid).length;
+            });
+            document.getElementById('totalParticipantsCount').textContent = totalP;
+            document.getElementById('totalPaidCount').textContent = totalPaid;
+        }
+
+        function displayTournaments() {
+            const t = translations[currentLang];
+            const container = document.getElementById('tournamentsContainer');
+            if (!container) return;
+
+            if (tournamentsList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>${t.labelNoTournaments}</h3>
+                        <p>${t.labelNoTournamentsDesc}</p>
+                    </div>`;
+                return;
+            }
+
+            // tournamentCoursesWithGames is built by loadTournaments()
+
+            // Sort by date descending
+            const sorted = [...tournamentsList].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '';
+            sorted.forEach(tournament => {
+                const participants = tournament.participants || [];
+                const playersCount = participants.filter(p => p.type === 'plays' || p.type === 'plays_dinner').length;
+                const dinnerCount = participants.filter(p => p.type === 'dinner' || p.type === 'plays_dinner').length;
+                const playsDinnerCount = participants.filter(p => p.type === 'plays_dinner').length;
+                const playsOnlyCount = participants.filter(p => p.type === 'plays').length;
+                const dinnerOnlyCount = participants.filter(p => p.type === 'dinner').length;
+                const guestsCount = participants.filter(p => p.isGuest).length;
+                const paidCount = participants.filter(p => p.paid).length;
+                const unpaidCount = participants.length - paidCount;
+                const dinnerPrice = tournament.dinnerPrice || 0;
+                const dinnerPaidCount = participants.filter(p => (p.type === 'dinner' || p.type === 'plays_dinner') && p.paid).length;
+                const dinnerTotalRevenue = dinnerCount * dinnerPrice;
+                const dinnerCollected = dinnerPaidCount * dinnerPrice;
+
+                // Check if ALL tournament courses have games (not just any)
+                const coursesWithGames = tournamentCoursesWithGames[tournament.key] || new Set();
+                const tournamentCourses = [tournament.course, tournament.course2].filter(c => c);
+                const allCoursesHaveGames = tournamentCourses.length > 0 && tournamentCourses.every(c => coursesWithGames.has(c));
+
+                html += `
+                    <div class="tournament-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+                            <div>
+                                <h3>🏆 ${tournament.name}</h3>
+                                <div class="tournament-meta">
+                                    📅 ${tournament.date}${tournament.course ? ` | ⛳ ${tournament.course}` : ''}${tournament.course2 ? ` | ⛳ ${tournament.course2}` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                ${playersCount > 0 ? (allCoursesHaveGames 
+                                    ? `<button disabled class="btn btn-secondary" style="font-size: 0.85em; padding: 6px 12px; opacity: 0.6; cursor: not-allowed;">✅ ${t.labelFoursomesGenerated || 'Foursomes Generated'}</button>`
+                                    : `<button onclick="prepareTournamentGame('${tournament.key}')" class="btn btn-primary" style="font-size: 0.85em; padding: 6px 12px;">🏌️ ${t.btnPrepareFoursomes} (${playersCount})</button>`
+                                ) : ''}
+                                <button onclick="editTournament('${tournament.key}')" class="btn-edit" style="font-size: 0.85em;">${t.btnEdit}</button>
+                                <button onclick="deleteTournament('${tournament.key}')" class="btn-delete" style="font-size: 0.85em;">${t.btnDelete}</button>
+                            </div>
+                        </div>
+
+                        <!-- Add Participant Section -->
+                        <div class="add-participant-section">
+                            <strong>${t.labelAddParticipant}:</strong>
+                            <div class="guest-form-row">
+                                <select id="addPlayer-${tournament.key}" style="flex: 1; min-width: 140px;">
+                                    <option value="">${t.labelSelectPlayer}</option>
+                                    ${players.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                                </select>
+                                <select id="addPlayerType-${tournament.key}">
+                                    <option value="plays">${t.optPlays}</option>
+                                    <option value="plays_dinner">${t.optPlaysDinner}</option>
+                                    <option value="dinner">${t.optDinnerOnly}</option>
+                                </select>
+                                <button onclick="addParticipantToTournament('${tournament.key}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.85em;">➕</button>
+                            </div>
+
+                            <strong style="display: block; margin-top: 12px;">${t.labelAddGuest}:</strong>
+                            <div class="guest-form-row">
+                                <input type="text" id="guestName-${tournament.key}" placeholder="${t.labelGuestName}" style="flex: 1; min-width: 120px;">
+                                <select id="guestOf-${tournament.key}" style="min-width: 140px;">
+                                    <option value="">${t.labelGuestOf}...</option>
+                                    ${participants.filter(p => !p.isGuest).map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                                </select>
+                                <select id="guestType-${tournament.key}">
+                                    <option value="plays">${t.optPlays}</option>
+                                    <option value="plays_dinner">${t.optPlaysDinner}</option>
+                                    <option value="dinner">${t.optDinnerOnly}</option>
+                                </select>
+                                <button onclick="addGuestToTournament('${tournament.key}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.85em;">➕</button>
+                            </div>
+
+                        </div>
+
+                        <!-- Participants List -->
+                        <div class="tournament-participants">
+                            <h4 style="margin-bottom: 10px; color: #333;">${t.labelParticipantsAndGuests} (${participants.length})</h4>
+                `;
+
+                if (participants.length === 0) {
+                    html += `<p style="color: #999; font-style: italic; padding: 10px;">${t.labelNoTournaments === t.labelNoTournaments ? 'No participants yet' : 'Aucun participant'}</p>`;
+                } else {
+                    // Show players first, then guests grouped under their host
+                    const mainParticipants = participants.filter(p => !p.isGuest);
+                    const guests = participants.filter(p => p.isGuest);
+
+                    mainParticipants.forEach((p, idx) => {
+                        const pIdx = participants.indexOf(p);
+                        const typeBadge = p.type === 'plays_dinner' 
+                            ? `<span class="badge badge-plays">${t.optPlaysDinner}</span>`
+                            : p.type === 'plays' 
+                            ? `<span class="badge badge-plays">${t.optPlays}</span>` 
+                            : `<span class="badge badge-dinner">${t.optDinnerOnly}</span>`;
+                        const paidBadge = p.paid 
+                            ? `<span class="badge badge-paid">${t.labelPaid}</span>` 
+                            : `<span class="badge badge-unpaid">${t.labelUnpaid}</span>`;
+                        const paidBtnClass = p.paid ? 'paid' : 'unpaid';
+                        const paidBtnText = p.paid ? t.btnTogglePaid : t.btnToggleUnpaid;
+
+                        html += `
+                            <div class="participant-row">
+                                <span class="participant-name">👤 ${p.name}</span>
+                                <div class="participant-badges">
+                                    <select onchange="changeParticipantType('${tournament.key}', ${pIdx}, this.value)" style="padding: 3px 6px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.8em; cursor: pointer;">
+                                        <option value="plays" ${p.type === 'plays' ? 'selected' : ''}>${t.optPlays}</option>
+                                        <option value="plays_dinner" ${p.type === 'plays_dinner' ? 'selected' : ''}>${t.optPlaysDinner}</option>
+                                        <option value="dinner" ${p.type === 'dinner' ? 'selected' : ''}>${t.optDinnerOnly}</option>
+                                    </select>
+                                    ${paidBadge}
+                                    <button class="btn-paid-toggle ${paidBtnClass}" onclick="togglePaid('${tournament.key}', ${pIdx})">
+                                        ${paidBtnText}
+                                    </button>
+                                    <button onclick="removeParticipant('${tournament.key}', ${pIdx})" style="background: none; border: none; color: #f44336; cursor: pointer; font-weight: bold; font-size: 1.1em;" title="${t.btnDelete}">✕</button>
+                                </div>
+                            </div>
+                        `;
+
+                        // Show guests of this player
+                        const playerGuests = guests.filter(g => g.guestOf === p.name);
+                        playerGuests.forEach(g => {
+                            const gIdx = participants.indexOf(g);
+                            const gPaidBadge = g.paid 
+                                ? `<span class="badge badge-paid">${t.labelPaid}</span>` 
+                                : `<span class="badge badge-unpaid">${t.labelUnpaid}</span>`;
+                            const gPaidBtnClass = g.paid ? 'paid' : 'unpaid';
+                            const gPaidBtnText = g.paid ? t.btnTogglePaid : t.btnToggleUnpaid;
+
+                            html += `
+                                <div class="participant-row" style="padding-left: 35px; background: #fafafa;">
+                                    <span class="participant-name">
+                                        🎫 ${g.name}
+                                        <button onclick="editParticipantName('${tournament.key}', ${gIdx})" style="background: none; border: none; color: #2196F3; cursor: pointer; font-size: 0.85em; margin-left: 4px;" title="${t.labelEditName}">✏️</button>
+                                        <span class="badge guest-tag">${t.labelGuestOf} ${g.guestOf}</span>
+                                    </span>
+                                    <div class="participant-badges">
+                                        <select onchange="changeParticipantType('${tournament.key}', ${gIdx}, this.value)" style="padding: 3px 6px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.8em; cursor: pointer;">
+                                            <option value="plays" ${g.type === 'plays' ? 'selected' : ''}>${t.optPlays}</option>
+                                            <option value="plays_dinner" ${g.type === 'plays_dinner' ? 'selected' : ''}>${t.optPlaysDinner}</option>
+                                            <option value="dinner" ${g.type === 'dinner' ? 'selected' : ''}>${t.optDinnerOnly}</option>
+                                        </select>
+                                        ${gPaidBadge}
+                                        <button class="btn-paid-toggle ${gPaidBtnClass}" onclick="togglePaid('${tournament.key}', ${gIdx})">
+                                            ${gPaidBtnText}
+                                        </button>
+                                        <button onclick="removeParticipant('${tournament.key}', ${gIdx})" style="background: none; border: none; color: #f44336; cursor: pointer; font-weight: bold; font-size: 1.1em;" title="${t.btnDelete}">✕</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    });
+
+                    // Show orphan guests (guestOf not found)
+                    const orphanGuests = guests.filter(g => !mainParticipants.some(p => p.name === g.guestOf));
+                    orphanGuests.forEach(g => {
+                        const gIdx = participants.indexOf(g);
+                        const gPaidBadge = g.paid 
+                            ? `<span class="badge badge-paid">${t.labelPaid}</span>` 
+                            : `<span class="badge badge-unpaid">${t.labelUnpaid}</span>`;
+                        const gPaidBtnClass = g.paid ? 'paid' : 'unpaid';
+                        const gPaidBtnText = g.paid ? t.btnTogglePaid : t.btnToggleUnpaid;
+
+                        html += `
+                            <div class="participant-row" style="padding-left: 35px; background: #fafafa;">
+                                <span class="participant-name">
+                                    🎫 ${g.name}
+                                    <button onclick="editParticipantName('${tournament.key}', ${gIdx})" style="background: none; border: none; color: #2196F3; cursor: pointer; font-size: 0.85em; margin-left: 4px;" title="${t.labelEditName}">✏️</button>
+                                    <span class="badge guest-tag">${t.labelGuestOf} ${g.guestOf || '?'}</span>
+                                </span>
+                                <div class="participant-badges">
+                                    <select onchange="changeParticipantType('${tournament.key}', ${gIdx}, this.value)" style="padding: 3px 6px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.8em; cursor: pointer;">
+                                        <option value="plays" ${g.type === 'plays' ? 'selected' : ''}>${t.optPlays}</option>
+                                        <option value="plays_dinner" ${g.type === 'plays_dinner' ? 'selected' : ''}>${t.optPlaysDinner}</option>
+                                        <option value="dinner" ${g.type === 'dinner' ? 'selected' : ''}>${t.optDinnerOnly}</option>
+                                    </select>
+                                    ${gPaidBadge}
+                                    <button class="btn-paid-toggle ${gPaidBtnClass}" onclick="togglePaid('${tournament.key}', ${gIdx})">
+                                        ${gPaidBtnText}
+                                    </button>
+                                    <button onclick="removeParticipant('${tournament.key}', ${gIdx})" style="background: none; border: none; color: #f44336; cursor: pointer; font-weight: bold; font-size: 1.1em;" title="${t.btnDelete}">✕</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Summary
+                html += `
+                        </div>
+                        <div class="tournament-summary">
+                            <div class="summary-item">
+                                <div class="summary-value">${playersCount}</div>
+                                <div class="summary-label">🏌️ ${t.labelTotalPlaying}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">${dinnerCount}</div>
+                                <div class="summary-label">🍽️ ${t.labelTotalDinner}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">${guestsCount}</div>
+                                <div class="summary-label">🎫 ${t.labelGuests}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" style="color: #4CAF50;">${paidCount}</div>
+                                <div class="summary-label">💰 ${t.labelPaid}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" style="color: #f44336;">${unpaidCount}</div>
+                                <div class="summary-label">❌ ${t.labelUnpaid}</div>
+                            </div>
+                            ${dinnerPrice > 0 ? `
+                            <div class="summary-item">
+                                <div class="summary-value" style="color: #2196F3;">$${dinnerTotalRevenue.toFixed(2)}</div>
+                                <div class="summary-label">🍽️ ${t.labelDinnerRevenue}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" style="color: #4CAF50;">$${dinnerCollected.toFixed(2)}</div>
+                                <div class="summary-label">💰 ${t.labelCollected}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        window.addParticipantToTournament = function(tournamentKey) {
+            const t = translations[currentLang];
+            const selectEl = document.getElementById(`addPlayer-${tournamentKey}`);
+            const typeEl = document.getElementById(`addPlayerType-${tournamentKey}`);
+            const playerName = selectEl.value;
+            const type = typeEl.value;
+
+            if (!playerName) {
+                alert(t.alertSelectPlayerFirst);
+                return;
+            }
+
+            tournamentsRef.child(tournamentKey).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const participants = data.participants || [];
+
+                if (participants.some(p => p.name === playerName && !p.isGuest)) {
+                    alert(t.alertPlayerAlreadyAdded);
+                    return;
+                }
+
+                participants.push({
+                    name: playerName,
+                    type: type,
+                    paid: false,
+                    isGuest: false
+                });
+
+                tournamentsRef.child(tournamentKey).update({ participants: participants }).then(() => {
+                    loadTournaments();
+                });
+            });
+        };
+
+        window.addGuestToTournament = function(tournamentKey) {
+            const t = translations[currentLang];
+            const nameEl = document.getElementById(`guestName-${tournamentKey}`);
+            const guestOfEl = document.getElementById(`guestOf-${tournamentKey}`);
+            const typeEl = document.getElementById(`guestType-${tournamentKey}`);
+            const guestName = nameEl.value.trim();
+            const guestOf = guestOfEl.value;
+            const type = typeEl.value;
+
+            if (!guestName) {
+                alert(t.alertEnterGuestName);
+                return;
+            }
+
+            tournamentsRef.child(tournamentKey).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const participants = data.participants || [];
+
+                participants.push({
+                    name: guestName,
+                    type: type,
+                    paid: false,
+                    isGuest: true,
+                    guestOf: guestOf || ''
+                });
+
+                tournamentsRef.child(tournamentKey).update({ participants: participants }).then(() => {
+                    nameEl.value = '';
+                    loadTournaments();
+                });
+            });
+        };
+
+        window.togglePaid = function(tournamentKey, participantIdx) {
+            tournamentsRef.child(tournamentKey).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const participants = data.participants || [];
+                if (participantIdx >= 0 && participantIdx < participants.length) {
+                    participants[participantIdx].paid = !participants[participantIdx].paid;
+                    tournamentsRef.child(tournamentKey).update({ participants: participants }).then(() => {
+                        loadTournaments();
+                    });
+                }
+            });
+        };
+
+        window.changeParticipantType = function(tournamentKey, participantIdx, newType) {
+            tournamentsRef.child(tournamentKey).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const participants = data.participants || [];
+                if (participantIdx >= 0 && participantIdx < participants.length) {
+                    participants[participantIdx].type = newType;
+                    tournamentsRef.child(tournamentKey).update({ participants: participants }).then(() => {
+                        loadTournaments();
+                    });
+                }
+            });
+        };
+
+        window.editParticipantName = function(tournamentKey, participantIdx) {
+            const t = translations[currentLang];
+            tournamentsRef.child(tournamentKey).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const participants = data.participants || [];
+                if (participantIdx >= 0 && participantIdx < participants.length) {
+                    const current = participants[participantIdx];
+                    const newName = prompt(t.alertEnterNewName, current.name);
+                    if (newName && newName.trim() && newName.trim() !== current.name) {
+                        participants[participantIdx].name = newName.trim();
+                        tournamentsRef.child(tournamentKey).update({ participants: participants }).then(() => {
+                            loadTournaments();
+                        });
+                    }
+                }
+            });
+        };
+
+        window.removeParticipant = function(tournamentKey, participantIdx) {
+            const t = translations[currentLang];
+            tournamentsRef.child(tournamentKey).once('value', (snapshot) => {
+                const data = snapshot.val();
+                const participants = data.participants || [];
+                if (participantIdx >= 0 && participantIdx < participants.length) {
+                    participants.splice(participantIdx, 1);
+                    tournamentsRef.child(tournamentKey).update({ participants: participants }).then(() => {
+                        loadTournaments();
+                    });
+                }
+            });
+        };
+
+        window.editTournament = function(tournamentKey) {
+            const t = translations[currentLang];
+            const tournament = tournamentKeysMap[tournamentKey];
+            if (!tournament) return;
+
+            tournamentNameInput.value = tournament.name;
+            tournamentDateInput.value = tournament.date;
+            tournamentCourseSelect.value = tournament.course || '';
+            if (tournamentCourse2Select) tournamentCourse2Select.value = tournament.course2 || '';
+            document.getElementById('tournamentDinnerPrice').value = tournament.dinnerPrice || '';
+            editTournamentKey.value = tournamentKey;
+            document.getElementById('tournamentFormTitle').innerHTML = t.tournamentFormTitleEdit + ' <span id="tournamentFormToggle" style="float: right; font-size: 0.7em;">▲</span>';
+            // Expand form when editing
+            document.getElementById('tournamentForm').style.display = '';
+            document.getElementById('tournamentFormToggle').textContent = '▲';
+            submitTournamentBtn2.textContent = t.btnUpdateTournament;
+            cancelTournamentBtn2.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.deleteTournament = function(tournamentKey) {
+            const t = translations[currentLang];
+            if (!confirm(t.confirmDeleteTournament)) return;
+            tournamentsRef.child(tournamentKey).remove().then(() => {
+                // Also remove the linked game if it exists
+                gamesRef.orderByChild('tournamentKey').equalTo(tournamentKey).once('value', (snapshot) => {
+                    snapshot.forEach(child => child.ref.remove());
+                });
+                alert(t.alertTournamentDeleted);
+                loadTournaments();
+                loadGameHistory();
+            }).catch(err => console.error('Error deleting tournament:', err));
+        };
+
+        // Prepare tournament game: switch to Planning tab with tournament data pre-filled
+        window.prepareTournamentGame = function(tournamentKey) {
+            const tournament = tournamentKeysMap[tournamentKey];
+            if (!tournament) return;
+
+            const participants = tournament.participants || [];
+            const playingParticipants = participants.filter(p => p.type === 'plays' || p.type === 'plays_dinner');
+
+            if (playingParticipants.length === 0) return;
+
+            // Query existing games for this tournament to exclude already-assigned players
+            gamesRef.orderByChild('tournamentKey').equalTo(tournamentKey).once('value', (gamesSnap) => {
+                const otherGamePlayers = new Set();
+                gamesSnap.forEach(child => {
+                    let groups = child.val().groups || [];
+                    if (!Array.isArray(groups)) groups = Object.values(groups);
+                    groups.forEach(g => {
+                        let group = Array.isArray(g) ? g : Object.values(g || {});
+                        group.forEach(p => otherGamePlayers.add(p.name));
+                    });
+                });
+
+                // Filter out players already in other tournament games
+                const availableParticipants = playingParticipants.filter(p => !otherGamePlayers.has(p.name));
+                const availableNames = availableParticipants.map(p => p.name);
+
+                if (availableParticipants.length === 0) return;
+
+                // Switch to Planning tab
+                switchTab('planning');
+
+                // Store tournament data for player filtering
+                window._tournamentPreSelect = availableNames;
+                window._tournamentPlayingParticipants = availableParticipants;
+                window._tournamentKeyForGame = tournamentKey;
+                window._tournamentNameForGame = tournament.name;
+
+                // Restrict course dropdown to tournament courses that don't have games yet
+                const courseSelect = document.getElementById('planningCourseSelect');
+                const t = translations[currentLang];
+                const allTournamentCourses = [tournament.course, tournament.course2].filter(c => c);
+                const coursesWithGames = tournamentCoursesWithGames[tournamentKey] || new Set();
+                const availableCourses = allTournamentCourses.filter(c => !coursesWithGames.has(c));
+
+                // If no available courses (shouldn't happen if button is shown), fall back to all
+                const tournamentCourses = availableCourses.length > 0 ? availableCourses : allTournamentCourses;
+
+                // If 2 available courses: start with first, store second for after save
+                if (tournamentCourses.length === 2) {
+                    window._tournamentPendingCourse2 = tournamentCourses[1];
+                    window._tournamentPendingParticipants2 = [...availableParticipants];
+                    window._tournamentPendingKey2 = tournamentKey;
+                    window._tournamentPendingName2 = tournament.name;
+
+                    // Show only the first course
+                    courseSelect.innerHTML = `<option value="">${t.optChooseCourse}</option>`;
+                    const courseData = courses.find(c => c.name === tournamentCourses[0]);
+                    const opt = document.createElement('option');
+                    opt.value = tournamentCourses[0];
+                    opt.textContent = courseData ? `${tournamentCourses[0]} (${courseData.location})` : tournamentCourses[0];
+                    courseSelect.appendChild(opt);
+                    courseSelect.value = tournamentCourses[0];
+                } else {
+                    courseSelect.innerHTML = `<option value="">${t.optChooseCourse}</option>`;
+                    tournamentCourses.forEach(cName => {
+                        const courseData = courses.find(c => c.name === cName);
+                        const opt = document.createElement('option');
+                        opt.value = cName;
+                        opt.textContent = courseData ? `${cName} (${courseData.location})` : cName;
+                        courseSelect.appendChild(opt);
+                    });
+                    if (tournamentCourses.length === 1) {
+                        courseSelect.value = tournamentCourses[0];
+                    }
+                }
+
+                // Pre-fill date
+                document.getElementById('planningDate').value = tournament.date || '';
+
+                // Open player selection after a short delay to let the tab render
+                setTimeout(() => {
+                    if (!document.getElementById('planningStartTime').value) {
+                        document.getElementById('planningStartTime').value = '08:00';
+                    }
+                    showPlanningPlayers();
+                }, 200);
             });
         };
 
@@ -3675,6 +4744,151 @@
     </div>
     <style>
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Tournament Tab Styles */
+        .tournament-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        .tournament-card h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .tournament-card .tournament-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .tournament-participants {
+            margin-top: 15px;
+        }
+        .participant-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+        }
+        .participant-row:last-child {
+            border-bottom: none;
+        }
+        .participant-name {
+            flex: 1;
+            font-weight: 500;
+            min-width: 120px;
+        }
+        .participant-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .badge-plays {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .badge-plays-dinner {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #a5d6a7;
+        }
+        .badge-dinner {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .badge-paid {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .badge-unpaid {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        .guest-tag {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        .btn-paid-toggle {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-paid-toggle.paid {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-paid-toggle.unpaid {
+            background: #f44336;
+            color: white;
+        }
+        .guest-form-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .guest-form-row input {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        .guest-form-row select {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background: white;
+        }
+        .tournament-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+        }
+        .summary-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f5f5f5;
+        }
+        .summary-item .summary-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        .summary-item .summary-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 4px;
+        }
+        .add-participant-section {
+            background: #f1f8e9;
+            border: 1px dashed #81c784;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
     </style>
 
     <script>
