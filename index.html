@@ -848,8 +848,12 @@
                     <label for="loginPwd">Password</label>
                     <input type="password" id="loginPwd" placeholder="Enter password" required>
                 </div>
+                <button type="button" onclick="handlePasswordReset()" style="background: none; border: none; color: #2196F3; cursor: pointer; display: block; font-weight: 600; margin: -5px 0 15px auto; padding: 0; text-align: right;">
+                    Forgot password?
+                </button>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Access</button>
                 <p id="loginError" style="color: #f44336; margin-top: 15px; display: none; text-align: center; font-weight: bold;">Invalid credentials</p>
+                <p id="loginSuccess" style="color: #4CAF50; margin-top: 15px; display: none; text-align: center; font-weight: bold;"></p>
                 <div style="text-align: center; margin-top: 20px;">
                     <button type="button" class="btn btn-secondary" onclick="showSignupForm()" style="width: 100%; background: #4CAF50;">
                         ➕ Create Account
@@ -1191,7 +1195,11 @@
             const user = document.getElementById('loginUser').value;
             const pwd = document.getElementById('loginPwd').value;
             const errorMsg = document.getElementById('loginError');
+            const successMsg = document.getElementById('loginSuccess');
             const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
 
             // Indicate loading
             const originalBtnText = submitBtn.textContent;
@@ -1246,6 +1254,47 @@
         function showLoginForm() {
             document.getElementById('signupPage').style.display = 'none';
             document.getElementById('loginPage').style.display = 'flex';
+        }
+
+        async function handlePasswordReset() {
+            const emailInput = document.getElementById('loginUser');
+            const email = emailInput.value.trim();
+            const errorMsg = document.getElementById('loginError');
+            const successMsg = document.getElementById('loginSuccess');
+
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            if (!email) {
+                errorMsg.textContent = 'Enter your email first, then click Forgot password.';
+                errorMsg.style.display = 'block';
+                emailInput.focus();
+                return;
+            }
+
+            try {
+                if (!auth || typeof auth.sendPasswordResetEmail !== 'function') {
+                    throw new Error('Firebase password reset is not available.');
+                }
+
+                await auth.sendPasswordResetEmail(email);
+                successMsg.textContent = 'Password reset link sent. Ask the client to check their email inbox.';
+                successMsg.style.display = 'block';
+            } catch (err) {
+                console.error('Password reset failed', err);
+
+                let errorMessage = 'Unable to send the password reset link. Please try again.';
+                if (err.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email address.';
+                } else if (err.code === 'auth/user-not-found') {
+                    errorMessage = 'No account found for this email address.';
+                } else if (err.message) {
+                    errorMessage = err.message;
+                }
+
+                errorMsg.textContent = errorMessage;
+                errorMsg.style.display = 'block';
+            }
         }
 
         async function handleSignup(e) {
@@ -1365,7 +1414,7 @@
         }
 
         // What's New Logic
-        const WHATS_NEW_VERSION = '2026.03.17';
+        const WHATS_NEW_VERSION = '2026.10.15';
 
         function showWhatsNewIfNeeded() {
             const seen = localStorage.getItem('golfApp_whatsNewSeen');
@@ -1380,6 +1429,10 @@
 
             const changes = currentLang === 'en' ? `
                 <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <strong style="color: #4CAF50;">🔐 Password Reset</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Send a password reset link directly from the login screen when a client forgets their password.</span>
+                    </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
                         <strong style="color: #4CAF50;">🏆 Tournament Management</strong><br>
                         <span style="color: #666; font-size: 0.95em;">Create and manage tournaments with participants, guests, and payment tracking.</span>
@@ -1407,6 +1460,10 @@
                 </ul>
             ` : `
                 <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <strong style="color: #4CAF50;">🔐 Réinitialisation du mot de passe</strong><br>
+                        <span style="color: #666; font-size: 0.95em;">Envoyez un lien de réinitialisation directement depuis l'écran de connexion quand un client oublie son mot de passe.</span>
+                    </li>
                     <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
                         <strong style="color: #4CAF50;">🏆 Gestion des Tournois</strong><br>
                         <span style="color: #666; font-size: 0.95em;">Créez et gérez des tournois avec participants, invités et suivi des paiements.</span>
